@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudioGest — Scheda Cliente</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-logo"><div class="logo-icon"><i class="fa-solid fa-briefcase"></i></div>StudioGest</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Gestionale</div>
+            <div class="nav-item" data-page="dashboard"><span class="nav-icon"><i class="fa-solid fa-house"></i></span> Dashboard</div>
+            <div class="nav-item" data-page="clienti"><span class="nav-icon"><i class="fa-solid fa-user-group"></i></span> Clienti</div>
+            <div class="nav-item" data-page="sessioni"><span class="nav-icon"><i class="fa-solid fa-calendar-plus"></i></span> Sessioni</div>
+            <div class="nav-item" data-page="risorse"><span class="nav-icon"><i class="fa-solid fa-boxes-stacked"></i></span> Risorse</div>
+            <div class="nav-item" data-page="richiesta-documenti"><span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span> Documenti</div>
+            <div class="sidebar-section-label">Sistema</div>
+            <div class="nav-item" data-page="impostazioni"><span class="nav-icon"><i class="fa-solid fa-gear"></i></span> Impostazioni</div>
+            <div class="nav-item" data-page="logout"><span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span> Esci</div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="sidebar-user-avatar">LB</div>
+                <div><div class="font-medium" style="color:#E2E8F0;font-size:13px" id="sidebar-user-name">—</div><div style="font-size:11px" id="sidebar-user-role">—</div></div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="topbar">
+            <div class="topbar-title">
+                <button class="btn btn-ghost btn-sm no-print" onclick="navigateTo('clienti')" style="margin-right:8px"><i class="fa-solid fa-arrow-left"></i></button>
+                <i class="fa-solid fa-folder-open" style="color:var(--color-primary);margin-right:8px"></i>
+                Scheda Cliente
+            </div>
+            <div class="topbar-actions no-print">
+                <button class="btn btn-ghost btn-sm" onclick="printDocumento()"><i class="fa-solid fa-file-pen"></i> Stampa Documento</button>
+                <button class="btn btn-primary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Stampa Tutto</button>
+            </div>
+        </header>
+
+        <main class="page-body">
+            <div id="not-found" style="display:none">
+                <div class="empty-state"><div class="empty-icon">❌</div><h3>Cliente non trovato</h3><button class="btn btn-primary" onclick="navigateTo('clienti')">← Torna ai clienti</button></div>
+            </div>
+
+            <div id="scheda-content" style="display:none">
+                <!-- Client header -->
+                <div class="patient-header" id="patient-header">
+                    <div class="patient-name" id="ph-name">—</div>
+                    <div class="patient-meta" id="ph-meta">—</div>
+                    <div class="patient-actions">
+                        <button class="btn btn-white btn-sm" onclick="openEditCliente()"><i class="fa-solid fa-pen"></i> Modifica</button>
+                        <button class="btn btn-white btn-sm" onclick="printDocumento()"><i class="fa-solid fa-file-pen"></i> Documento</button>
+                        <button class="btn btn-white btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Stampa Tutto</button>
+                    </div>
+                </div>
+
+                <!-- Info grid -->
+                <div class="card mb-24" style="padding:20px">
+                    <div class="info-grid" id="ph-info-grid"></div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="card" data-tabs-scope>
+                    <div class="tabs" style="padding:0 16px">
+                        <button class="tab-btn active" data-tab="sessioni"><i class="fa-solid fa-calendar-plus"></i> <span data-vocab="tab_sessioni">Sedute</span> <span class="nav-badge" id="tab-badge-sessioni" style="background:var(--color-primary)">0</span></button>
+                        <button class="tab-btn" data-tab="servizi"><i class="fa-solid fa-layer-group"></i> <span data-vocab="tab_servizi">Servizi</span> <span class="nav-badge" id="tab-badge-servizi" style="background:var(--color-primary)">0</span></button>
+                        <button class="tab-btn" data-tab="note"><i class="fa-solid fa-clipboard-list"></i> <span data-vocab="tab_note_cliente">Note Cliente</span></button>
+                        <button class="tab-btn" data-tab="analisi"><i class="fa-solid fa-chart-bar"></i> <span data-vocab="tab_analisi">Analisi</span></button>
+                        <button class="tab-btn" data-tab="doc-tecnici"><i class="fa-solid fa-file-image"></i> <span data-vocab="tab_doc_tecnici">Doc. Tecnici</span></button>
+                        <button class="tab-btn" data-tab="richiesta-documenti"><i class="fa-solid fa-file-lines"></i> <span data-vocab="tab_richieste">Richiesta Documenti</span></button>
+                        <button class="tab-btn" data-tab="in-corso"><i class="fa-solid fa-boxes-stacked"></i> <span data-vocab="tab_in_corso">In Corso</span></button>
+                        <button class="tab-btn" data-tab="accordo"><i class="fa-solid fa-file-signature"></i> <span data-vocab="tab_consenso">Consenso</span></button>
+                    </div>
+                    <div style="padding:20px">
+
+                        <!-- SESSIONI -->
+                        <div class="tab-panel active" id="tab-sessioni">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                                <h3 style="font-size:15px;font-weight:600"><span data-vocab="tab_sessioni">Sedute</span> del cliente</h3>
+                                <button class="btn btn-primary btn-sm" onclick="openModalSessione()"><i class="fa-solid fa-plus"></i> <span data-vocab="nuovaSessione">Nuova Sessione</span></button>
+                            </div>
+                            <div id="sessioni-list"></div>
+                        </div>
+
+                        <!-- SERVIZI -->
+                        <div class="tab-panel" id="tab-servizi">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                                <h3 style="font-size:15px;font-weight:600">Servizi <span class="text-muted" id="servizi-count-label"></span></h3>
+                                <div style="display:flex;gap:8px">
+                                    <button class="btn btn-ghost btn-sm" onclick="printServizi()"><i class="fa-solid fa-print"></i> Stampa</button>
+                                    <button class="btn btn-primary btn-sm" onclick="openModalServizio()"><i class="fa-solid fa-plus"></i> Nuovo Servizio</button>
+                                </div>
+                            </div>
+                            <div id="servizi-list"></div>
+                        </div>
+
+                        <!-- NOTE -->
+                        <div class="tab-panel" id="tab-note">
+                            <h3 style="font-size:15px;font-weight:600;margin-bottom:16px">Note Cliente</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Note Iniziali</label>
+                                    <textarea id="note-remota" class="form-control" rows="6" placeholder="Storia ed eventi passati…"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Note Correnti</label>
+                                    <textarea id="note-prossimale" class="form-control" rows="6" placeholder="Situazione corrente…"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Note Aggiuntive</label>
+                                <textarea id="note-remota-app" class="form-control" rows="4" placeholder="Dettagli aggiuntivi…"></textarea>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveNote()"><i class="fa-solid fa-floppy-disk"></i> Salva Note</button>
+                        </div>
+
+                        <!-- Analisi -->
+                        <div class="tab-panel" id="tab-analisi">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                                <h3 style="font-size:15px;font-weight:600">Analisi</h3>
+                                <button class="btn btn-primary btn-sm" onclick="openModalAnalisi('ematici')"><i class="fa-solid fa-plus"></i> Aggiungi</button>
+                            </div>
+                            <div id="analisi-list"></div>
+                        </div>
+
+                        <!-- DOC TECNICI -->
+                        <div class="tab-panel" id="tab-doc-tecnici">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                                <h3 style="font-size:15px;font-weight:600">Doc. Tecnici</h3>
+                                <button class="btn btn-primary btn-sm" onclick="openModalAnalisi('strumentali')"><i class="fa-solid fa-plus"></i> Aggiungi</button>
+                            </div>
+                            <div id="doc-tecnici-list"></div>
+                        </div>
+
+                        <!-- Richiesta Documenti -->
+                        <div class="tab-panel" id="tab-richiesta-documenti">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                                <h3 style="font-size:15px;font-weight:600">Richiesta Documenti</h3>
+                                <button class="btn btn-primary btn-sm" onclick="openModalRichiesta()"><i class="fa-solid fa-plus"></i> Nuova Richiesta</button>
+                            </div>
+                            <div id="richieste-list"></div>
+                        </div>
+
+                        <!-- In Corso -->
+                        <div class="tab-panel" id="tab-in-corso">
+                            <h3 style="font-size:15px;font-weight:600;margin-bottom:16px" id="tab-in-corso-title"><span data-vocab="tab_in_corso">In corso</span></h3>
+                            <div class="form-group">
+                                <label class="form-label" id="tab-in-corso-label"><span data-vocab="risorse">Risorse</span> correntemente in uso</label>
+                                <textarea id="in-corso-content" class="form-control" rows="8" placeholder="Elencare le risorse in uso, quantità, frequenza…"></textarea>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveInCorso()"><i class="fa-solid fa-floppy-disk"></i> Salva</button>
+                        </div>
+
+                        <!-- Accordo -->
+                        <div class="tab-panel" id="tab-accordo">
+                            <h3 style="font-size:15px;font-weight:600;margin-bottom:16px">Accordo</h3>
+                            <div id="accordo-info"></div>
+                            <button class="btn btn-primary" onclick="openModalAccordo()"><i class="fa-solid fa-file-signature"></i> Registra Accordo</button>
+                            <p class="text-muted text-sm" style="margin-top:12px"><i class="fa-solid fa-circle-info"></i> Conservare il documento cartaceo firmato. Qui si registra solo la data e le note.</p>
+                        </div>
+
+                    </div><!-- /padding -->
+                </div><!-- /card tabs -->
+            </div><!-- /scheda-content -->
+        </main>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- Sessione -->
+<div class="modal-overlay" id="modal-sessione">
+    <div class="modal">
+        <div class="modal-header"><span id="modal-sessione-title"><i class="fa-solid fa-calendar-plus"></i> Nuova Sessione</span><button class="btn-close" data-modal-close="modal-sessione">✕</button></div>
+        <div class="modal-body">
+            <input type="hidden" id="sed-id">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Tipo Sessione *</label>
+                    <select id="sed-tipo" class="form-control">
+                        <option value="">Seleziona tipo…</option>
+                        <option value="t1" data-tipo="t1">Tipo A</option>
+                        <option value="t2" data-tipo="t2">Tipo B</option>
+                        <option value="t3" data-tipo="t3">Tipo C</option>
+                        <option value="t4" data-tipo="t4">Tipo D</option>
+                        <option value="t5" data-tipo="t5">Tipo E</option>
+                    </select>
+                </div>
+                <div class="form-group"><label class="form-label">Data *</label><input type="date" id="sed-data" class="form-control"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Risorse utilizzate</label><input type="text" id="sed-risorse" class="form-control" placeholder="es. note risorse…"></div>
+            <div class="form-group"><label class="form-label">Descrizione</label><textarea id="sed-descrizione" class="form-control" rows="3" placeholder="Descrizione della sessione…"></textarea></div>
+            <div class="form-group"><label class="form-label">Note</label><input type="text" id="sed-nota" class="form-control" placeholder="Note aggiuntive"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-modal-close="modal-sessione">Annulla</button>
+            <button class="btn btn-primary" onclick="saveSessione()"><i class="fa-solid fa-floppy-disk"></i> Salva</button>
+        </div>
+    </div>
+</div>
+
+<!-- Servizio -->
+<div class="modal-overlay" id="modal-servizio">
+    <div class="modal">
+        <div class="modal-header"><span id="modal-servizio-title"><i class="fa-solid fa-layer-group"></i> Nuovo Servizio</span><button class="btn-close" data-modal-close="modal-servizio">✕</button></div>
+        <div class="modal-body">
+            <input type="hidden" id="ter-id">
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Nome Servizio *</label><input type="text" id="ter-nome" class="form-control" placeholder="es. Servizio A"></div>
+                <div class="form-group"><label class="form-label">Numero</label><input type="number" id="ter-numero" class="form-control" placeholder="1" min="1"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Data</label><input type="date" id="ter-data" class="form-control"></div>
+                <div class="form-group"><label class="form-label">Risorsa</label><input type="text" id="ter-risorsa" class="form-control" placeholder="Nome risorsa"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Descrizione</label><textarea id="ter-descrizione" class="form-control" rows="3"></textarea></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-modal-close="modal-servizio">Annulla</button>
+            <button class="btn btn-primary" onclick="saveServizio()"><i class="fa-solid fa-floppy-disk"></i> Salva</button>
+        </div>
+    </div>
+</div>
+
+<!-- Analisi -->
+<div class="modal-overlay" id="modal-analisi">
+    <div class="modal">
+        <div class="modal-header"><span id="modal-analisi-title"><i class="fa-solid fa-flask"></i> Nuovo Esame</span><button class="btn-close" data-modal-close="modal-analisi">✕</button></div>
+        <div class="modal-body">
+            <input type="hidden" id="es-id">
+            <input type="hidden" id="es-tipo">
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Data</label><input type="date" id="es-data" class="form-control"></div>
+                <div class="form-group"><label class="form-label">Tipo/Nome</label><input type="text" id="es-nome" class="form-control" placeholder="es. Elemento A, Elemento B…"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Descrizione</label><textarea id="es-descrizione" class="form-control" rows="3"></textarea></div>
+            <div class="form-group"><label class="form-label">Risultato</label><textarea id="es-risultato" class="form-control" rows="3" placeholder="Risultato…"></textarea></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-modal-close="modal-analisi">Annulla</button>
+            <button class="btn btn-primary" onclick="saveAnalisi()"><i class="fa-solid fa-floppy-disk"></i> Salva</button>
+        </div>
+    </div>
+</div>
+
+<!-- Richiesta Documenti -->
+<div class="modal-overlay" id="modal-richiesta">
+    <div class="modal">
+        <div class="modal-header"><i class="fa-solid fa-file-lines"></i> Richiesta Documenti<button class="btn-close" data-modal-close="modal-richiesta">✕</button></div>
+        <div class="modal-body">
+            <div class="form-group"><label class="form-label">Data richiesta</label><input type="date" id="rich-data" class="form-control"></div>
+            <div class="form-group"><label class="form-label">Contenuto *</label><textarea id="rich-contenuto" class="form-control" rows="5" placeholder="Elencare il contenuto richiesto…"></textarea></div>
+            <div class="form-group"><label class="form-label">Note</label><textarea id="rich-note" class="form-control" rows="2"></textarea></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-modal-close="modal-richiesta">Annulla</button>
+            <button class="btn btn-primary" onclick="saveRichiesta()"><i class="fa-solid fa-floppy-disk"></i> Salva</button>
+        </div>
+    </div>
+</div>
+
+<!-- Accordo -->
+<div class="modal-overlay" id="modal-accordo">
+    <div class="modal">
+        <div class="modal-header"><i class="fa-solid fa-file-signature"></i> Accordo<button class="btn-close" data-modal-close="modal-accordo">✕</button></div>
+        <div class="modal-body">
+            <div class="form-group"><label class="form-label">Data firma</label><input type="date" id="cons-data" class="form-control"></div>
+            <div class="form-group"><label class="form-label">Note</label><textarea id="cons-note" class="form-control" rows="3" placeholder="Note…"></textarea></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-modal-close="modal-accordo">Annulla</button>
+            <button class="btn btn-primary" onclick="saveAccordo()"><i class="fa-solid fa-floppy-disk"></i> Registra</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Cliente -->
+<div class="modal-overlay" id="modal-edit-cli">
+    <div class="modal" style="width:min(680px,95vw)">
+        <div class="modal-header"><i class="fa-solid fa-pen"></i> Modifica Cliente<button class="btn-close" data-modal-close="modal-edit-cli">✕</button></div>
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Nome</label><input type="text" id="ep-nome" class="form-control"></div>
+                <div class="form-group"><label class="form-label">Cognome</label><input type="text" id="ep-cognome" class="form-control"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Codice Fiscale</label><input type="text" id="ep-cf" class="form-control" style="text-transform:uppercase"></div>
+                <div class="form-group"><label class="form-label">Data Nascita</label><input type="date" id="ep-dob" class="form-control"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Comune Nascita</label><input type="text" id="ep-comune" class="form-control"></div>
+                <div class="form-group"><label class="form-label">Telefono</label><input type="text" id="ep-telefono" class="form-control"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Residenza</label><input type="text" id="ep-residenza" class="form-control"></div>
+            <div class="form-group"><label class="form-label">Note</label><textarea id="ep-note" class="form-control" rows="2"></textarea></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-modal-close="modal-edit-cli">Annulla</button>
+            <button class="btn btn-primary" onclick="saveEditCliente()"><i class="fa-solid fa-floppy-disk"></i> Salva</button>
+        </div>
+    </div>
+</div>
+
+<!-- Print: Documento (hidden, print-only) -->
+<div id="print-documento" class="print-only">
+    <div id="print-pres-content"></div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+let currentClienteId = null;
+let currentAnalisiTipo = null;
+
+const params = new URLSearchParams(window.location.search);
+currentClienteId = params.get('id');
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!currentClienteId) { document.getElementById('not-found').style.display = ''; return; }
+    const c = DB.getById('clienti', currentClienteId);
+    if (!c) { document.getElementById('not-found').style.display = ''; return; }
+    document.getElementById('scheda-content').style.display = '';
+    document.title = `${Vocab.get().appNome} — ${c.nome} ${c.cognome}`;
+    renderPatientHeader(c);
+    renderSedute();
+    renderServizi();
+    loadNote();
+    renderAnalisi();
+    renderDocTecnici();
+    renderRichieste();
+    loadInCorso();
+    renderAccordo();
+    // Set today in date fields
+    const today = new Date().toISOString().slice(0,10);
+    ['sed-data','ter-data','es-data','rich-data','cons-data'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.value) el.value = today;
+    });
+});
+
+function renderPatientHeader(c) {
+    document.getElementById('ph-name').textContent = `${c.nome} ${c.cognome}`;
+    document.getElementById('ph-meta').textContent =
+        `CF: ${c.cf || '—'} · Nato/a: ${c.dataNascita ? new Date(c.dataNascita+'T00:00:00').toLocaleDateString('it-IT') : '—'} (${c.comuneNascita || '—'}) · Tel: ${c.telefono || '—'}`;
+    setHTML(document.getElementById('ph-info-grid'), `
+        <div class="info-item"><div class="info-label">Residenza</div><div class="info-value">${c.residenza || '—'}</div></div>
+        <div class="info-item"><div class="info-label">Codice Fiscale</div><div class="info-value"><code>${c.cf || '—'}</code></div></div>
+        <div class="info-item"><div class="info-label">Data Nascita</div><div class="info-value">${c.dataNascita ? new Date(c.dataNascita+'T00:00:00').toLocaleDateString('it-IT') : '—'}</div></div>
+        <div class="info-item"><div class="info-label">Comune di Nascita</div><div class="info-value">${c.comuneNascita || '—'}</div></div>
+        <div class="info-item"><div class="info-label">Telefono</div><div class="info-value">${c.telefono || '—'}</div></div>
+        ${c.note ? `<div class="info-item" style="grid-column:1/-1"><div class="info-label">Note</div><div class="info-value">${c.note}</div></div>` : ''}
+    `);
+}
+
+// ── SEDUTE ──────────────────────────────────────────
+function renderSedute() {
+    const sessioni = DB.getByCliente('sessioni', currentClienteId).sort((a,b) => (b.data||'').localeCompare(a.data||''));
+    document.getElementById('tab-badge-sessioni').textContent = sessioni.length;
+    const el = document.getElementById('sessioni-list');
+    if (!sessioni.length) { showEmptyState(el, `Nessuna ${Vocab.get().sessione.toLowerCase()}`, Vocab.get().nuovaSessione, 'openModalSessione()'); return; }
+    setHTML(el, `<div class="table-wrapper"><table class="data-table">
+        <thead><tr><th>#</th><th>Tipo</th><th>Data</th><th>risorse</th><th>Descrizione</th><th>Note</th><th>Azioni</th></tr></thead>
+        <tbody>${sessioni.map((s,i) => `
+            <tr class="${SESSION_TYPES[s.tipo]?.cssClass || ''}">
+                <td class="text-muted">${sessioni.length - i}</td>
+                <td>${sessionTypeBadge(s.tipo)}</td>
+                <td>${s.data ? new Date(s.data+'T00:00:00').toLocaleDateString('it-IT') : '—'}</td>
+                <td>${s.risorse || '—'}</td>
+                <td>${s.descrizione || '—'}</td>
+                <td class="text-muted">${s.nota || '—'}</td>
+                <td><div style="display:flex;gap:4px">
+                    <button class="btn btn-ghost btn-sm" onclick="openModalSessioneEdit('${s.id}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--color-danger)" onclick="deleteSessione('${s.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div></td>
+            </tr>`).join('')}
+        </tbody></table></div>`);
+}
+
+function openModalSessione() {
+    const v = Vocab.get();
+    document.getElementById('modal-sessione-title').innerHTML = `<i class="fa-solid fa-calendar-plus"></i> ${v.nuovaSessione}`;
+    ['sed-id','sed-tipo','sed-risorse','sed-descrizione','sed-nota'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('sed-data').value = new Date().toISOString().slice(0,10);
+    openModal('modal-sessione');
+}
+
+function openModalSessioneEdit(id) {
+    const s = DB.getById('sessioni', id);
+    if (!s) return;
+    const v = Vocab.get();
+    document.getElementById('modal-sessione-title').innerHTML = `<i class="fa-solid fa-pen"></i> Modifica ${v.sessione}`;
+    document.getElementById('sed-id').value = s.id;
+    document.getElementById('sed-tipo').value = s.tipo || '';
+    document.getElementById('sed-data').value = s.data || '';
+    document.getElementById('sed-risorse').value = s.risorse || '';
+    document.getElementById('sed-descrizione').value = s.descrizione || '';
+    document.getElementById('sed-nota').value = s.nota || '';
+    openModal('modal-sessione');
+}
+
+function saveSessione() {
+    const tipo = document.getElementById('sed-tipo').value;
+    const data = document.getElementById('sed-data').value;
+    const v = Vocab.get();
+    if (!tipo || !data) { showToast('Tipo e data sono obbligatori', 'warning'); return; }
+    const obj = { clienteId: currentClienteId, tipo, data,
+        risorse: document.getElementById('sed-risorse').value.trim(),
+        descrizione: document.getElementById('sed-descrizione').value.trim(),
+        nota: document.getElementById('sed-nota').value.trim() };
+    const id = document.getElementById('sed-id').value;
+    if (id) { DB.update('sessioni', id, obj); showToast(`${v.sessione} aggiornata`, 'success'); }
+    else { DB.create('sessioni', obj); showToast(`${v.sessione} aggiunta`, 'success'); }
+    closeModal('modal-sessione');
+    renderSedute();
+}
+
+function deleteSessione(id) {
+    const v = Vocab.get();
+    if (!confirm(`Eliminare questa ${v.sessione.toLowerCase()}?`)) return;
+    DB.delete('sessioni', id);
+    renderSedute();
+    showToast(`${v.sessione} eliminata`, 'success');
+}
+
+// ── SERVIZI ─────────────────────────────────────────
+function renderServizi() {
+    const servizi = DB.getByCliente('servizi', currentClienteId).sort((a,b) => (b.data||'').localeCompare(a.data||''));
+    document.getElementById('tab-badge-servizi').textContent = servizi.length;
+    document.getElementById('servizi-count-label').textContent = `(${servizi.length} totali)`;
+    const el = document.getElementById('servizi-list');
+    if (!servizi.length) { showEmptyState(el, 'Nessun servizio', 'Nuovo Servizio', 'openModalServizio()'); return; }
+    setHTML(el, `<div class="table-wrapper"><table class="data-table">
+        <thead><tr><th>#</th><th>Nome Servizio</th><th>N° Terapia</th><th>Data</th><th>Risorsa</th><th>Descrizione</th><th>Azioni</th></tr></thead>
+        <tbody>${servizi.map((t,i) => `
+            <tr>
+                <td class="text-muted">${i+1}</td>
+                <td class="font-semibold">${t.nomeServizio}</td>
+                <td><span class="badge badge-info">${t.numero || '—'}</span></td>
+                <td>${t.data ? new Date(t.data+'T00:00:00').toLocaleDateString('it-IT') : '—'}</td>
+                <td>${t.risorsa || '—'}</td>
+                <td>${t.descrizione || '—'}</td>
+                <td><div style="display:flex;gap:4px">
+                    <button class="btn btn-ghost btn-sm" onclick="openModalServizioEdit('${t.id}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--color-danger)" onclick="deleteServizio('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div></td>
+            </tr>`).join('')}
+        </tbody></table></div>`);
+}
+
+function openModalServizio() {
+    document.getElementById('modal-servizio-title').innerHTML = '<i class="fa-solid fa-layer-group"></i> Nuovo Servizio';
+    ['ter-id','ter-nome','ter-numero','ter-risorsa','ter-descrizione'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('ter-data').value = new Date().toISOString().slice(0,10);
+    openModal('modal-servizio');
+}
+
+function openModalServizioEdit(id) {
+    const t = DB.getById('servizi', id);
+    if (!t) return;
+    document.getElementById('modal-servizio-title').innerHTML = '<i class="fa-solid fa-pen"></i> Modifica Servizio';
+    document.getElementById('ter-id').value = t.id;
+    document.getElementById('ter-nome').value = t.nomeServizio || '';
+    document.getElementById('ter-numero').value = t.numero || '';
+    document.getElementById('ter-data').value = t.data || '';
+    document.getElementById('ter-risorsa').value = t.risorsa || '';
+    document.getElementById('ter-descrizione').value = t.descrizione || '';
+    openModal('modal-servizio');
+}
+
+function saveServizio() {
+    const nomeServizio = document.getElementById('ter-nome').value.trim();
+    if (!nomeServizio) { showToast('Nome Servizio obbligatorio', 'warning'); return; }
+    const obj = { clienteId: currentClienteId, nomeServizio,
+        numero: document.getElementById('ter-numero').value,
+        data: document.getElementById('ter-data').value,
+        risorsa: document.getElementById('ter-risorsa').value.trim(),
+        descrizione: document.getElementById('ter-descrizione').value.trim() };
+    const id = document.getElementById('ter-id').value;
+    if (id) { DB.update('servizi', id, obj); showToast('Servizio aggiornato', 'success'); }
+    else { DB.create('servizi', obj); showToast('Servizio aggiunto', 'success'); }
+    closeModal('modal-servizio');
+    renderServizi();
+}
+
+function deleteServizio(id) {
+    if (!confirm('Eliminare questo servizio?')) return;
+    DB.delete('servizi', id); renderServizi(); showToast('Servizio eliminato', 'success');
+}
+
+// ── NOTE ────────────────────────────────────────
+function loadNote() {
+    const a = DB.getByCliente('note', currentClienteId)[0] || {};
+    document.getElementById('note-remota').value = a.remota || '';
+    document.getElementById('note-prossimale').value = a.prossimale || '';
+    document.getElementById('note-remota-app').value = a.remota_app || '';
+}
+
+function saveNote() {
+    const remota = document.getElementById('note-remota').value;
+    const prossimale = document.getElementById('note-prossimale').value;
+    const remota_app = document.getElementById('note-remota-app').value;
+    const existing = DB.getByCliente('note', currentClienteId)[0];
+    if (existing) DB.update('note', existing.id, { remota, prossimale, remota_app });
+    else DB.create('note', { clienteId: currentClienteId, remota, prossimale, remota_app });
+    showToast('Note salvate', 'success');
+}
+
+// ── Analisi ───────────────────────────────────
+function renderAnalisi() {
+    const items = DB.getAll('analisi').filter(e => e.clienteId === currentClienteId && e.tipo === 'ematici')
+        .sort((a,b) => (b.data||'').localeCompare(a.data||''));
+    renderAnalisiTable(document.getElementById('analisi-list'), items, 'ematici');
+}
+
+function renderDocTecnici() {
+    const items = DB.getAll('analisi').filter(e => e.clienteId === currentClienteId && e.tipo === 'strumentali')
+        .sort((a,b) => (b.data||'').localeCompare(a.data||''));
+    renderAnalisiTable(document.getElementById('doc-tecnici-list'), items, 'strumentali');
+}
+
+function renderAnalisiTable(el, items, tipo) {
+    if (!items.length) { showEmptyState(el, tipo === 'ematici' ? 'Nessun elemento' : 'Nessun elemento', 'Aggiungi', `openModalAnalisi('${tipo}')`); return; }
+    setHTML(el, `<div class="table-wrapper"><table class="data-table">
+        <thead><tr><th>Data</th><th>Tipo/Nome</th><th>Descrizione</th><th>Risultato</th><th>Azioni</th></tr></thead>
+        <tbody>${items.map(e => `
+            <tr>
+                <td>${e.data ? new Date(e.data+'T00:00:00').toLocaleDateString('it-IT') : '—'}</td>
+                <td class="font-medium">${e.nome || '—'}</td>
+                <td>${e.descrizione || '—'}</td>
+                <td>${e.risultato || '—'}</td>
+                <td><div style="display:flex;gap:4px">
+                    <button class="btn btn-ghost btn-sm" onclick="openModalAnalisiEdit('${e.id}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--color-danger)" onclick="deleteAnalisi('${e.id}','${tipo}')"><i class="fa-solid fa-trash"></i></button>
+                </div></td>
+            </tr>`).join('')}
+        </tbody></table></div>`);
+}
+
+function openModalAnalisi(tipo) {
+    currentAnalisiTipo = tipo;
+    document.getElementById('modal-analisi-title').innerHTML = tipo === 'ematici'
+        ? '<i class="fa-solid fa-chart-bar"></i> Nuova Analisi'
+        : '<i class="fa-solid fa-file-image"></i> Nuovo Doc. Tecnico';
+    ['es-id','es-nome','es-descrizione','es-risultato'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('es-tipo').value = tipo;
+    document.getElementById('es-data').value = new Date().toISOString().slice(0,10);
+    openModal('modal-analisi');
+}
+
+function openModalAnalisiEdit(id) {
+    const e = DB.getById('analisi', id);
+    if (!e) return;
+    currentAnalisiTipo = e.tipo;
+    document.getElementById('es-id').value = e.id;
+    document.getElementById('es-tipo').value = e.tipo;
+    document.getElementById('es-data').value = e.data || '';
+    document.getElementById('es-nome').value = e.nome || '';
+    document.getElementById('es-descrizione').value = e.descrizione || '';
+    document.getElementById('es-risultato').value = e.risultato || '';
+    openModal('modal-analisi');
+}
+
+function saveAnalisi() {
+    const nome = document.getElementById('es-nome').value.trim();
+    const tipo = document.getElementById('es-tipo').value || currentAnalisiTipo;
+    if (!nome) { showToast('Nome obbligatorio', 'warning'); return; }
+    const obj = { clienteId: currentClienteId, tipo, nome,
+        data: document.getElementById('es-data').value,
+        descrizione: document.getElementById('es-descrizione').value.trim(),
+        risultato: document.getElementById('es-risultato').value.trim() };
+    const id = document.getElementById('es-id').value;
+    if (id) { DB.update('analisi', id, obj); showToast('Analisi aggiornata', 'success'); }
+    else { DB.create('analisi', obj); showToast('Analisi aggiunta', 'success'); }
+    closeModal('modal-analisi');
+    renderAnalisi(); renderDocTecnici();
+}
+
+function deleteAnalisi(id, tipo) {
+    if (!confirm('Eliminare questa analisi?')) return;
+    DB.delete('analisi', id);
+    renderAnalisi(); renderDocTecnici();
+    showToast('Analisi eliminata', 'success');
+}
+
+// ── RICHIESTE ────────────────────────────────────────
+function renderRichieste() {
+    const richieste = DB.getByCliente('richieste', currentClienteId).sort((a,b) => (b.data||'').localeCompare(a.data||''));
+    const el = document.getElementById('richieste-list');
+    if (!richieste.length) { showEmptyState(el, 'Nessuna Richiesta Documenti', 'Nuova Richiesta', 'openModalRichiesta()'); return; }
+    setHTML(el, `<div style="display:flex;flex-direction:column;gap:12px">${richieste.map(r => `
+        <div class="card" style="padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <div>
+                    <div class="text-sm text-muted">${r.data ? new Date(r.data+'T00:00:00').toLocaleDateString('it-IT') : '—'}</div>
+                    <div style="white-space:pre-line;margin-top:8px">${r.contenuto || ''}</div>
+                    ${r.note ? `<div class="text-sm text-muted mt-8">${r.note}</div>` : ''}
+                </div>
+                <div style="display:flex;gap:4px;margin-left:16px">
+                    <button class="btn btn-ghost btn-sm" onclick="printRichiesta('${r.id}')"><i class="fa-solid fa-print"></i></button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--color-danger)" onclick="deleteRichiesta('${r.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+        </div>`).join('')}</div>`);
+}
+
+function openModalRichiesta() {
+    document.getElementById('rich-data').value = new Date().toISOString().slice(0,10);
+    document.getElementById('rich-contenuto').value = '';
+    document.getElementById('rich-note').value = '';
+    openModal('modal-richiesta');
+}
+
+function saveRichiesta() {
+    const contenuto = document.getElementById('rich-contenuto').value.trim();
+    if (!contenuto) { showToast('Contenuto obbligatorio', 'warning'); return; }
+    DB.create('richieste', { clienteId: currentClienteId,
+        data: document.getElementById('rich-data').value,
+        contenuto, note: document.getElementById('rich-note').value.trim() });
+    closeModal('modal-richiesta'); renderRichieste(); showToast('Richiesta salvata', 'success');
+}
+
+function deleteRichiesta(id) {
+    if (!confirm('Eliminare questa richiesta?')) return;
+    DB.delete('richieste', id); renderRichieste(); showToast('Eliminata', 'success');
+}
+
+function printRichiesta(id) {
+    const r = DB.getById('richieste', id);
+    const c = DB.getById('clienti', currentClienteId);
+    if (!r || !c) return;
+    const el = document.createElement('div');
+    el.innerHTML = buildLetterheadHTML(c, r.data, r.contenuto, r.note);
+    printElement(el);
+}
+
+// ── In Corso ─────────────────────────────────
+function loadInCorso() {
+    const a = DB.getByCliente('note', currentClienteId)[0] || {};
+    document.getElementById('in-corso-content').value = a.inCorso || '';
+}
+
+function saveInCorso() {
+    const val = document.getElementById('in-corso-content').value;
+    const existing = DB.getByCliente('note', currentClienteId)[0];
+    if (existing) DB.update('note', existing.id, { inCorso: val });
+    else DB.create('note', { clienteId: currentClienteId, inCorso: val });
+    showToast('Salvato', 'success');
+}
+
+// ── ACCORDO ────────────────────────────────────────
+function renderAccordo() {
+    const c = DB.getByCliente('accordi', currentClienteId)[0];
+    const el = document.getElementById('accordo-info');
+    if (!c) { setHTML(el, `<div class="alert alert-info mb-16"><i class="fa-solid fa-circle-info"></i> Nessun accordo registrato per questo cliente.</div>`); return; }
+    setHTML(el, `<div class="alert" style="background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7;margin-bottom:16px">
+        <i class="fa-solid fa-check-circle"></i>
+        <div><strong>Accordo registrato</strong> — Data firma: ${c.dataFirma ? new Date(c.dataFirma+'T00:00:00').toLocaleDateString('it-IT') : '—'}
+        ${c.note ? `<br><span class="text-sm">${c.note}</span>` : ''}</div>
+    </div>`);
+}
+
+function openModalAccordo() {
+    document.getElementById('cons-data').value = new Date().toISOString().slice(0,10);
+    document.getElementById('cons-note').value = '';
+    openModal('modal-accordo');
+}
+
+function saveAccordo() {
+    const dataFirma = document.getElementById('cons-data').value;
+    if (!dataFirma) { showToast('Data firma obbligatoria', 'warning'); return; }
+    const existing = DB.getByCliente('accordi', currentClienteId)[0];
+    const note = document.getElementById('cons-note').value.trim();
+    if (existing) DB.update('accordi', existing.id, { dataFirma, note });
+    else DB.create('accordi', { clienteId: currentClienteId, dataFirma, note });
+    closeModal('modal-accordo'); renderAccordo(); showToast('Accordo registrato', 'success');
+}
+
+// ── EDIT CLIENT ──────────────────────────────────────
+function openEditCliente() {
+    const c = DB.getById('clienti', currentClienteId);
+    if (!c) return;
+    document.getElementById('ep-nome').value = c.nome || '';
+    document.getElementById('ep-cognome').value = c.cognome || '';
+    document.getElementById('ep-cf').value = c.cf || '';
+    document.getElementById('ep-dob').value = c.dataNascita || '';
+    document.getElementById('ep-comune').value = c.comuneNascita || '';
+    document.getElementById('ep-telefono').value = c.telefono || '';
+    document.getElementById('ep-residenza').value = c.residenza || '';
+    document.getElementById('ep-note').value = c.note || '';
+    openModal('modal-edit-cli');
+}
+
+function saveEditCliente() {
+    const nome = document.getElementById('ep-nome').value.trim();
+    const cognome = document.getElementById('ep-cognome').value.trim();
+    if (!nome || !cognome) { showToast('Nome e Cognome obbligatori', 'warning'); return; }
+    DB.update('clienti', currentClienteId, {
+        nome, cognome,
+        cf: document.getElementById('ep-cf').value.trim().toUpperCase(),
+        dataNascita: document.getElementById('ep-dob').value,
+        comuneNascita: document.getElementById('ep-comune').value.trim(),
+        telefono: document.getElementById('ep-telefono').value.trim(),
+        residenza: document.getElementById('ep-residenza').value.trim(),
+        note: document.getElementById('ep-note').value.trim()
+    });
+    closeModal('modal-edit-cli');
+    const c = DB.getById('clienti', currentClienteId);
+    renderPatientHeader(c);
+    document.title = `${Vocab.get().appNome} — ${c.nome} ${c.cognome}`;
+    showToast('Cliente aggiornato', 'success');
+}
+
+// ── PRINT ────────────────────────────────────────────
+function printServizi() {
+    const c = DB.getById('clienti', currentClienteId);
+    const servizi = DB.getByCliente('servizi', currentClienteId);
+    const el = document.createElement('div');
+    el.innerHTML = `
+        <h2 class="teal">Servizi — ${c.nome} ${c.cognome}</h2>
+        <p class="meta">CF: ${c.cf || '—'} · Data stampa: ${new Date().toLocaleDateString('it-IT')}</p>
+        <div class="divider"></div>
+        <table>
+            <thead><tr><th>#</th><th>Nome Servizio</th><th>N°</th><th>Data</th><th>Risorsa</th><th>Descrizione</th></tr></thead>
+            <tbody>${servizi.map((t,i) => `<tr><td>${i+1}</td><td>${t.nomeServizio}</td><td>${t.numero||'—'}</td>
+                <td>${t.data?new Date(t.data+'T00:00:00').toLocaleDateString('it-IT'):'—'}</td>
+                <td>${t.risorsa||'—'}</td><td>${t.descrizione||'—'}</td></tr>`).join('')}
+            </tbody>
+        </table>`;
+    printElement(el);
+}
+
+function printDocumento() {
+    const c = DB.getById('clienti', currentClienteId);
+    if (!c) return;
+    const sessioni = DB.getByCliente('sessioni', currentClienteId);
+    const el = document.createElement('div');
+    el.innerHTML = buildPrescriptionHTML(c, sessioni);
+    printElement(el);
+}
+
+function buildPrescriptionHTML(c, sessioni) {
+    const m = Profilo.get();
+    const fullName = `${m.titolo} ${m.nome} ${m.cognome}`.trim();
+    return `
+        <div style="text-align:right;margin-bottom:24px">
+            <div style="font-size:9pt;color:#64748B">${fullName} — ${m.qualifica}<br>${m.telefono || ''}</div>
+        </div>
+        <h1 class="teal">Documento</h1>
+        <div class="divider"></div>
+        <div class="section">
+            <h2>Dati Cliente</h2>
+            <table><tr><td><strong>Nome:</strong> ${c.nome} ${c.cognome}</td><td><strong>CF:</strong> ${c.cf||'—'}</td></tr>
+            <tr><td><strong>Nato/a:</strong> ${c.dataNascita?new Date(c.dataNascita+'T00:00:00').toLocaleDateString('it-IT'):'—'} (${c.comuneNascita||'—'})</td><td><strong>Tel:</strong> ${c.telefono||'—'}</td></tr></table>
+        </div>
+        <div class="section">
+            <h2>Numero Sessioni per Tipo</h2>
+            <table>
+                <thead><tr><th>Tipo Sessione</th><th>Numero Sessioni</th></tr></thead>
+                <tbody>${Object.entries(SESSION_TYPES).map(([key,val]) => {
+                    const cnt = sessioni.filter(s => s.tipo === key).length;
+                    return cnt > 0 ? `<tr><td>${getSessioneLabel(key)}</td><td>${cnt}</td></tr>` : '';
+                }).join('')}
+                <tr style="font-weight:bold"><td>Totale</td><td>${sessioni.length}</td></tr></tbody>
+            </table>
+        </div>
+        <br><br>
+        <div class="signature-line">Firma del Profilo</div>
+        <p style="font-size:9pt;margin-top:4px;color:#64748B">${fullName}</p>
+        <p style="font-size:9pt;color:#64748B">Data: ${new Date().toLocaleDateString('it-IT')}</p>`;
+}
+
+function buildLetterheadHTML(c, data, contenuto, note) {
+    const m = Profilo.get();
+    const fullName = `${m.titolo} ${m.nome} ${m.cognome}`.trim();
+    return `
+        <div style="border-bottom:3px solid #0F766E;padding-bottom:16px;margin-bottom:24px">
+            <div style="font-size:16pt;font-weight:700;color:#0F766E">${m.titolo}<br>${m.nome} ${m.cognome}</div>
+            <div style="font-size:11pt;font-weight:600;margin-top:4px">${m.qualifica}</div>
+            ${m.specializzazione ? `<div style="font-size:10pt;color:#64748B;margin-top:6px">Specialista in: ${m.specializzazione}</div>` : ''}
+            ${m.competenze ? `<div style="font-size:10pt;color:#64748B;margin-top:4px;line-height:1.7">Esperto/a in: ${m.competenze}</div>` : ''}
+            ${m.telefono ? `<div style="font-size:10pt;margin-top:10px"><strong>Riceve su appuntamento:</strong> ${m.telefono}</div>` : ''}
+        </div>
+        <h1 class="teal" style="margin-bottom:12px">Richiesta Documenti</h1>
+        <p style="font-size:10pt;margin-bottom:4px"><strong>Cliente:</strong> ${c.nome} ${c.cognome}</p>
+        <p style="font-size:10pt;margin-bottom:4px"><strong>C.F.:</strong> ${c.cf||'—'}</p>
+        <p style="font-size:10pt;margin-bottom:16px"><strong>Data:</strong> ${data?new Date(data+'T00:00:00').toLocaleDateString('it-IT'):new Date().toLocaleDateString('it-IT')}</p>
+        <div style="border:1px solid #ccc;padding:16px;min-height:100px;white-space:pre-line;font-size:11pt">${contenuto||''}</div>
+        ${note ? `<p style="margin-top:12px;font-size:10pt"><strong>Note:</strong> ${note}</p>` : ''}
+        <br><br>
+        <div class="signature-line">Firma del Profilo</div>
+        <p style="font-size:9pt;margin-top:4px;color:#64748B">${fullName}</p>`;
+}
+</script>
+</body>
+</html>

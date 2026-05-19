@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudioGest — Risorse</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-logo"><div class="logo-icon"><i class="fa-solid fa-briefcase"></i></div>StudioGest</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Gestionale</div>
+            <div class="nav-item" data-page="dashboard"><span class="nav-icon"><i class="fa-solid fa-house"></i></span> Dashboard</div>
+            <div class="nav-item" data-page="clienti"><span class="nav-icon"><i class="fa-solid fa-user-group"></i></span> Clienti</div>
+            <div class="nav-item" data-page="sessioni"><span class="nav-icon"><i class="fa-solid fa-calendar-plus"></i></span> Sessioni</div>
+            <div class="nav-item" data-page="risorse"><span class="nav-icon"><i class="fa-solid fa-boxes-stacked"></i></span> Risorse</div>
+            <div class="nav-item" data-page="richiesta-documenti"><span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span> Documenti</div>
+            <div class="sidebar-section-label">Sistema</div>
+            <div class="nav-item" data-page="impostazioni"><span class="nav-icon"><i class="fa-solid fa-gear"></i></span> Impostazioni</div>
+            <div class="nav-item" data-page="logout"><span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span> Esci</div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="sidebar-user-avatar">LB</div>
+                <div><div class="font-medium" style="color:#E2E8F0;font-size:13px" id="sidebar-user-name">—</div><div style="font-size:11px" id="sidebar-user-role">—</div></div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="topbar">
+            <div class="topbar-title"><i class="fa-solid fa-boxes-stacked" style="color:var(--color-primary);margin-right:8px"></i><span data-vocab="risorse">risorse</span></div>
+            <div class="topbar-actions">
+                <button class="btn btn-ghost btn-sm" onclick="exportrisorseCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+                <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Stampa</button>
+                <button class="btn btn-primary btn-sm" onclick="openModalNuovo()"><i class="fa-solid fa-plus"></i> <span data-vocab="nuovoRisorsa">Nuova Risorsa</span></button>
+            </div>
+        </header>
+
+        <main class="page-body">
+            <div id="alert-scaduti" style="display:none" class="alert alert-danger">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span id="alert-scaduti-msg"></span>
+            </div>
+
+            <div class="card">
+                <div class="toolbar">
+                    <div class="search-bar" style="width:280px">
+                        <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" class="form-control" id="search-input" placeholder="Cerca…">
+                    </div>
+                    <div class="toolbar-right">
+                        <select id="filter-stato" class="form-control" style="width:160px">
+                            <option value="">Tutti</option>
+                            <option value="scaduto">Scaduti</option>
+                            <option value="in-scadenza">In scadenza (≤30gg)</option>
+                            <option value="ok">Validi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div style="padding:8px 20px;display:flex;gap:16px;font-size:12px;border-bottom:1px solid var(--color-border);background:#FAFAFA">
+                    <span><span style="display:inline-block;width:12px;height:12px;background:#FEE2E2;border:1px solid #FECACA;border-radius:2px;margin-right:4px"></span>Scaduto</span>
+                    <span><span style="display:inline-block;width:12px;height:12px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:2px;margin-right:4px"></span>In scadenza (≤30gg)</span>
+                    <span><span style="display:inline-block;width:12px;height:12px;background:#fff;border:1px solid #E2E8F0;border-radius:2px;margin-right:4px"></span>Valido</span>
+                </div>
+
+                <div class="table-wrapper" style="border:none;border-radius:0">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nome</th>
+                                <th>Descrizione</th>
+                                <th>Quantità</th>
+                                <th>Data Scadenza</th>
+                                <th>Stato</th>
+                                <th style="width:100px">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="risorse-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal Risorsa -->
+<div class="modal-overlay" id="modal-risorsa">
+    <div class="modal">
+        <div class="modal-header">
+            <span id="modal-risorsa-title"><i class="fa-solid fa-plus"></i> Nuova Risorsa</span>
+            <button class="btn-close" data-modal-close="modal-risorsa">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="f-id">
+            <div class="form-group"><label class="form-label">Nome *</label><input type="text" id="f-nome" class="form-control" placeholder="es. nome elemento"></div>
+            <div class="form-group"><label class="form-label">Descrizione</label><textarea id="f-descrizione" class="form-control" rows="2" placeholder="Descrizione, indicazioni…"></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Quantità</label><input type="text" id="f-quantita" class="form-control" placeholder="es. 10 compresse"></div>
+                <div class="form-group"><label class="form-label">Data Scadenza</label><input type="date" id="f-scadenza" class="form-control"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-modal-close="modal-risorsa">Annulla</button>
+            <button class="btn btn-primary" onclick="saveRisorsa()"><i class="fa-solid fa-floppy-disk"></i> Salva</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+let allrisorse = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderrisorse();
+    document.getElementById('search-input').addEventListener('input', () => applyFilters());
+    document.getElementById('filter-stato').addEventListener('change', () => applyFilters());
+});
+
+function renderrisorse(items) {
+    allrisorse = DB.getAll('risorse');
+    const filtered = items !== undefined ? items : allrisorse;
+
+    // Alert for expired
+    const scaduti = allrisorse.filter(f => getResourceStatus(f.dataScadenza) === 'scaduto');
+    const alertEl = document.getElementById('alert-scaduti');
+    if (scaduti.length) {
+        alertEl.style.display = 'flex';
+        document.getElementById('alert-scaduti-msg').textContent =
+            `Attenzione: ${scaduti.length} ${Vocab.get()[scaduti.length > 1 ? 'risorse' : 'risorsa'].toLowerCase()} scadut${scaduti.length > 1 ? 'i' : 'o'}! Verificare e provvedere alla sostituzione.`;
+    } else {
+        alertEl.style.display = 'none';
+    }
+
+    const tbody = document.getElementById('risorse-tbody');
+    if (!filtered.length) {
+        setHTML(tbody, `<tr><td colspan="7" class="text-center" style="padding:40px">
+            <div class="empty-state" style="padding:0">
+                <div class="empty-icon"><i class="fa-solid fa-boxes-stacked" style="font-size:40px;color:var(--color-text-light)"></i></div>
+                <h3>Nessun ${Vocab.get().risorsa.toLowerCase()}</h3>
+                <p>Aggiungi il primo ${Vocab.get().risorsa.toLowerCase()}.</p>
+                <button class="btn btn-primary btn-sm" onclick="openModalNuovo()">+ Nuovo ${Vocab.get().risorsa}</button>
+            </div>
+        </td></tr>`);
+        return;
+    }
+
+    setHTML(tbody, filtered.map((f, i) => {
+        const status = getResourceStatus(f.dataScadenza);
+        return `
+        <tr class="${status}">
+            <td class="text-muted">${i + 1}</td>
+            <td class="font-semibold">${f.nome}</td>
+            <td>${f.descrizione || '—'}</td>
+            <td>${f.quantita || '—'}</td>
+            <td>${f.dataScadenza ? new Date(f.dataScadenza+'T00:00:00').toLocaleDateString('it-IT') : '—'}</td>
+            <td>${getResStatusBadge(f.dataScadenza)}</td>
+            <td>
+                <div style="display:flex;gap:4px">
+                    <button class="btn btn-ghost btn-sm" onclick="openModalModifica('${f.id}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--color-danger)" onclick="deleteRisorsa('${f.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    }).join(''));
+}
+
+function applyFilters() {
+    const query = document.getElementById('search-input').value;
+    const stato = document.getElementById('filter-stato').value;
+    let items = filterItems(allrisorse, query, ['nome', 'descrizione']);
+    if (stato) items = items.filter(f => getResourceStatus(f.dataScadenza) === stato);
+    renderrisorse(items);
+}
+
+function openModalNuovo() {
+    const v = Vocab.get();
+    document.getElementById('modal-risorsa-title').innerHTML = `<i class="fa-solid fa-plus"></i> ${v.nuovoRisorsa}`;
+    ['f-id','f-nome','f-descrizione','f-quantita','f-scadenza'].forEach(id => document.getElementById(id).value = '');
+    openModal('modal-risorsa');
+}
+
+function openModalModifica(id) {
+    const f = DB.getById('risorse', id);
+    if (!f) return;
+    document.getElementById('modal-risorsa-title').innerHTML = `<i class="fa-solid fa-pen"></i> Modifica ${Vocab.get().risorsa}`;
+    document.getElementById('f-id').value = f.id;
+    document.getElementById('f-nome').value = f.nome || '';
+    document.getElementById('f-descrizione').value = f.descrizione || '';
+    document.getElementById('f-quantita').value = f.quantita || '';
+    document.getElementById('f-scadenza').value = f.dataScadenza || '';
+    openModal('modal-risorsa');
+}
+
+function saveRisorsa() {
+    const nome = document.getElementById('f-nome').value.trim();
+    const v = Vocab.get();
+    if (!nome) { showToast(`Nome ${v.risorsa.toLowerCase()} obbligatorio`, 'warning'); return; }
+    const obj = {
+        nome,
+        descrizione: document.getElementById('f-descrizione').value.trim(),
+        quantita: document.getElementById('f-quantita').value.trim(),
+        dataScadenza: document.getElementById('f-scadenza').value
+    };
+    const id = document.getElementById('f-id').value;
+    if (id) { DB.update('risorse', id, obj); showToast(`${v.risorsa} aggiornato`, 'success'); }
+    else { DB.create('risorse', obj); showToast(`${v.risorsa} aggiunto`, 'success'); }
+    closeModal('modal-risorsa');
+    renderrisorse();
+}
+
+function deleteRisorsa(id) {
+    if (!confirm(`Eliminare questo elemento?`)) return;
+    DB.delete('risorse', id);
+    renderrisorse();
+    showToast(`${Vocab.get().risorsa} eliminato`, 'success');
+}
+
+function exportrisorseCSV() {
+    const v = Vocab.get();
+    const data = DB.getAll('risorse').map(f => ({
+        [v.risorsa]: f.nome,
+        Descrizione: f.descrizione || '',
+        Quantità: f.quantita || '',
+        'Data Scadenza': f.dataScadenza || '',
+        Stato: getResourceStatus(f.dataScadenza) === 'scaduto' ? 'SCADUTO' :
+               getResourceStatus(f.dataScadenza) === 'in-scadenza' ? 'IN SCADENZA' : 'OK'
+    }));
+    exportToCSV(data, `${v.risorse.toLowerCase()}.csv`);
+}
+</script>
+</body>
+</html>

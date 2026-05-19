@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudioGest — Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon"><i class="fa-solid fa-briefcase"></i></div>
+            StudioGest
+        </div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Gestionale</div>
+            <div class="nav-item" data-page="dashboard"><span class="nav-icon"><i class="fa-solid fa-house"></i></span> Dashboard</div>
+            <div class="nav-item" data-page="clienti"><span class="nav-icon"><i class="fa-solid fa-user-group"></i></span> Clienti</div>
+            <div class="nav-item" data-page="sessioni"><span class="nav-icon"><i class="fa-solid fa-calendar-plus"></i></span> Sessioni</div>
+            <div class="nav-item" data-page="risorse"><span class="nav-icon"><i class="fa-solid fa-boxes-stacked"></i></span> Risorse</div>
+            <div class="nav-item" data-page="richiesta-documenti"><span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span> Documenti</div>
+            <div class="sidebar-section-label">Sistema</div>
+            <div class="nav-item" data-page="impostazioni"><span class="nav-icon"><i class="fa-solid fa-gear"></i></span> Impostazioni</div>
+            <div class="nav-item" data-page="logout"><span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span> Esci</div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="sidebar-user-avatar">LB</div>
+                <div>
+                    <div class="font-medium" style="color:#E2E8F0;font-size:13px" id="sidebar-user-name">—</div>
+                    <div style="font-size:11px" id="sidebar-user-role">—</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+        <header class="topbar">
+            <div class="topbar-title"><i class="fa-solid fa-house" style="color:var(--color-primary);margin-right:8px"></i>Dashboard</div>
+            <div class="topbar-actions">
+                <span class="text-muted text-sm" id="topbar-date"></span>
+                <button class="btn btn-primary btn-sm" onclick="navigateTo('clienti')">
+                    <i class="fa-solid fa-user-plus"></i> <span data-vocab="nuovocliente">Nuovo Cliente</span>
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="navigateTo('sessione')">
+                    <i class="fa-solid fa-calendar-plus"></i> <span data-vocab="nuovaSessione">Nuova Sessione</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="page-body">
+
+            <!-- KPI -->
+            <div class="grid-4 mb-24">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background:#CCFBF1;color:#0F766E"><i class="fa-solid fa-user-group"></i></div>
+                    <div class="kpi-label" id="kpi-label-clienti">Clienti Totali</div>
+                    <div class="kpi-value" id="kpi-clienti">—</div>
+                    <div class="kpi-delta" id="kpi-clienti-delta"></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background:#DBEAFE;color:#3B82F6"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div class="kpi-label" id="kpi-label-sessioni-oggi">Sessioni Oggi</div>
+                    <div class="kpi-value" id="kpi-sessioni-oggi">—</div>
+                    <div class="kpi-delta" id="kpi-sessioni-oggi-delta"></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background:#FEF3C7;color:#F59E0B"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    <div class="kpi-label" id="kpi-label-risorse-scad">Risorse in Scadenza</div>
+                    <div class="kpi-value" id="kpi-risorse-scadenza">—</div>
+                    <div class="kpi-delta" id="kpi-risorse-delta"></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background:#EDE9FE;color:#8B5CF6"><i class="fa-solid fa-calendar-days"></i></div>
+                    <div class="kpi-label" id="kpi-label-sessioni-mese">Sessioni Questo Mese</div>
+                    <div class="kpi-value" id="kpi-sessioni-mese">—</div>
+                    <div class="kpi-delta" id="kpi-sessioni-mese-delta"></div>
+                </div>
+            </div>
+
+            <div class="grid-2 mb-24">
+
+                <!-- Widget clienti recenti -->
+                <div class="card">
+                    <div class="card-header">
+                        <span id="widget-header-clienti"><i class="fa-solid fa-user-group" style="color:var(--color-primary)"></i> Ultimi Clienti</span>
+                        <button class="btn btn-ghost btn-sm" onclick="navigateTo('clienti')">Vedi tutti →</button>
+                    </div>
+                    <div id="lista-clienti-recenti"></div>
+                </div>
+
+                <!-- Widget prossime sessioni -->
+                <div class="card">
+                    <div class="card-header">
+                        <span id="widget-header-sessioni"><i class="fa-solid fa-calendar-plus" style="color:#3B82F6"></i> Prossime Sessioni</span>
+                        <button class="btn btn-ghost btn-sm" onclick="navigateTo('sessioni')">Vedi tutte →</button>
+                    </div>
+                    <div id="lista-sessioni-prossime"></div>
+                </div>
+
+            </div>
+
+            <!-- Risorse in scadenza -->
+            <div class="card">
+                <div class="card-header">
+                    <span id="widget-header-risorse"><i class="fa-solid fa-triangle-exclamation" style="color:#F59E0B"></i> Risorse in Scadenza (≤30 giorni)</span>
+                    <button class="btn btn-ghost btn-sm" onclick="navigateTo('risorse')">Gestisci →</button>
+                </div>
+                <div id="risorse-scadenza-container">
+                    <div class="empty-state" style="padding:24px">
+                        <p class="text-muted"><i class="fa-solid fa-check-circle" style="color:var(--color-success)"></i> <span id="empty-risorse-msg">Nessuna risorsa in scadenza</span></p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Date
+    const dateEl = document.getElementById('topbar-date');
+    if (dateEl) dateEl.textContent = new Date().toLocaleDateString('it-IT', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+
+    loadDashboard();
+});
+
+function loadDashboard() {
+    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const thisMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    const v = Vocab.get();
+
+    const clienti = DB.getAll('clienti');
+    const sessioni   = DB.getAll('sessioni');
+    const risorse  = DB.getAll('risorse');
+
+    // KPI labels (dynamic)
+    const klC = document.getElementById('kpi-label-clienti');
+    const klSO = document.getElementById('kpi-label-sessioni-oggi');
+    const klRS = document.getElementById('kpi-label-risorse-scad');
+    const klSM = document.getElementById('kpi-label-sessioni-mese');
+    if (klC)  klC.textContent  = v.clienti + ' Totali';
+    if (klSO) klSO.textContent = v.sessioni + ' Oggi';
+    if (klRS) klRS.textContent = v.risorse + ' in Scadenza';
+    if (klSM) klSM.textContent = v.sessioni + ' Questo Mese';
+
+    // Widget headers
+    const whC = document.getElementById('widget-header-clienti');
+    const whS = document.getElementById('widget-header-sessioni');
+    const whR = document.getElementById('widget-header-risorse');
+    if (whC) whC.innerHTML = `<i class="fa-solid fa-user-group" style="color:var(--color-primary)"></i> Ultimi ${v.clienti}`;
+    if (whS) whS.innerHTML = `<i class="fa-solid fa-calendar-plus" style="color:#3B82F6"></i> Prossime ${v.sessioni}`;
+    if (whR) whR.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:#F59E0B"></i> ${v.risorse} in Scadenza (≤30 giorni)`;
+    const emptyMsg = document.getElementById('empty-risorse-msg');
+    if (emptyMsg) emptyMsg.textContent = `Nessun${v.risorsa.endsWith('a') ? 'a' : ''} ${v.risorsa.toLowerCase()} in scadenza`;
+
+    // KPIs
+    document.getElementById('kpi-clienti').textContent = clienti.length;
+    document.getElementById('kpi-clienti-delta').textContent = `${v.clienti.toLowerCase()} registrati`;
+
+    const sessioniOggi = sessioni.filter(s => s.data === today);
+    document.getElementById('kpi-sessioni-oggi').textContent = sessioniOggi.length;
+    document.getElementById('kpi-sessioni-oggi-delta').textContent = `${v.sessioni.toLowerCase()} programmate oggi`;
+
+    const RisorseInScad = risorse.filter(f => getResourceStatus(f.dataScadenza) !== 'ok');
+    document.getElementById('kpi-risorse-scadenza').textContent = RisorseInScad.length;
+    document.getElementById('kpi-risorse-delta').textContent = RisorseInScad.length > 0 ? 'attenzione!' : 'tutti OK';
+
+    const sessioniMese = sessioni.filter(s => s.data && s.data.startsWith(thisMonth));
+    document.getElementById('kpi-sessioni-mese').textContent = sessioniMese.length;
+    document.getElementById('kpi-sessioni-mese-delta').textContent = `${v.sessioni.toLowerCase()} nel mese corrente`;
+
+    // Ultimi clienti
+    const listaClienti = document.getElementById('lista-clienti-recenti');
+    if (!clienti.length) {
+        showEmptyState(listaClienti, `Nessun ${v.cliente.toLowerCase()}`, `Aggiungi ${v.cliente}`, "navigateTo('clienti')");
+    } else {
+        const ultimi = [...clienti].reverse().slice(0, 5);
+        setHTML(listaClienti, `<ul>${ultimi.map(c => `
+            <li style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--color-border);cursor:pointer"
+                onclick="window.location.href='scheda-cliente.html?id=${c.id}'">
+                <div class="avatar">${c.nome[0]}${c.cognome[0]}</div>
+                <div>
+                    <div class="font-medium">${c.nome} ${c.cognome}</div>
+                    <div class="text-xs text-muted">CF: ${c.cf || '—'} · ${c.telefono || ''}</div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-muted" style="margin-left:auto"></i>
+            </li>`).join('')}</ul>`);
+    }
+
+    // Prossime sessioni
+    const listaSessioni = document.getElementById('lista-sessioni-prossime');
+    const future = sessioni.filter(s => s.data >= today).sort((a,b) => a.data.localeCompare(b.data)).slice(0,5);
+    if (!future.length) {
+        showEmptyState(listaSessioni, `Nessuna ${v.sessione.toLowerCase()} programmata`, `${v.nuovaSessione}`, "navigateTo('sessioni')");
+    } else {
+        setHTML(listaSessioni, `<ul>${future.map(s => {
+            const cli = DB.getById('clienti', s.clienteId);
+            const clienteNome = cli ? `${cli.nome} ${cli.cognome}` : `${v.cliente} sconosciuto`;
+            return `<li style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--color-border)">
+                <div style="width:44px;text-align:center">
+                    <div style="font-size:18px;font-weight:700;color:var(--color-primary)">${s.data ? new Date(s.data+'T00:00:00').getDate() : '—'}</div>
+                    <div style="font-size:10px;color:var(--color-text-muted)">${s.data ? new Date(s.data+'T00:00:00').toLocaleDateString('it-IT',{month:'short'}) : ''}</div>
+                </div>
+                <div>
+                    <div class="font-medium">${clienteNome}</div>
+                    <div>${sessionTypeBadge(s.tipo)}</div>
+                </div>
+            </li>`;
+        }).join('')}</ul>`);
+    }
+
+    // Risorse in scadenza
+    const risorsaContainer = document.getElementById('risorse-scadenza-container');
+    if (!RisorseInScad.length) return;
+    setHTML(risorsaContainer, `
+        <div class="table-wrapper" style="border:none;border-radius:0">
+            <table class="data-table">
+                <thead><tr><th>${v.risorsa}</th><th>Descrizione</th><th>Scadenza</th><th>Stato</th></tr></thead>
+                <tbody>${RisorseInScad.map(f => `
+                    <tr class="${getResourceStatus(f.dataScadenza)}">
+                        <td class="font-medium">${f.nome}</td>
+                        <td>${f.descrizione || '—'}</td>
+                        <td>${f.dataScadenza ? new Date(f.dataScadenza+'T00:00:00').toLocaleDateString('it-IT') : '—'}</td>
+                        <td>${getResStatusBadge(f.dataScadenza)}</td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>`);
+}
+</script>
+</body>
+</html>

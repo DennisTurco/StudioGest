@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudioGest — Accesso</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body style="overflow:auto">
+
+<div class="login-shell">
+
+    <!-- Brand Panel -->
+    <div class="login-brand">
+        <div class="brand-logo"><i class="fa-solid fa-briefcase"></i></div>
+        <h1 id="login-app-name">StudioGest</h1>
+        <p id="login-brand-subtitle">Gestionale<br><strong>per uso personale</strong></p>
+        <div style="margin-top:32px;padding:16px;background:rgba(255,255,255,0.1);border-radius:10px;font-size:12px;line-height:1.7;opacity:0.85">
+            <i class="fa-solid fa-circle-info"></i>&nbsp; Applicazione ad uso personale.<br>
+            Non destinata alla vendita.
+        </div>
+    </div>
+
+    <!-- Login/Register Panel -->
+    <div class="login-right">
+        <div class="login-box">
+
+            <!-- Login Form -->
+            <div id="form-login">
+                <h2>Bentornato/a</h2>
+                <p class="subtitle">Accedi al gestionale</p>
+
+                <div class="form-group">
+                    <label class="form-label">Nome utente</label>
+                    <input type="text" id="login-user" class="form-control" placeholder="es. esposito.giovanni" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="login-pass" class="form-control" placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="doLogin()">
+                    <i class="fa-solid fa-right-to-bracket"></i> Accedi
+                </button>
+                <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--color-text-muted)">
+                    Prima volta? <a href="#" onclick="toggleForm()" style="color:var(--color-primary);font-weight:600">Crea account</a>
+                </p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="form-register" style="display:none">
+                <h2>Crea account</h2>
+                <p class="subtitle">Registra le tue credenziali</p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Nome</label>
+                        <input type="text" id="reg-nome" class="form-control" placeholder="Giovanni">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cognome</label>
+                        <input type="text" id="reg-cognome" class="form-control" placeholder="Esposito">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nome utente</label>
+                    <input type="text" id="reg-user" class="form-control" placeholder="giovanni.esposito">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="reg-pass" class="form-control" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="doRegister()">
+                    <i class="fa-solid fa-user-plus"></i> Registrati
+                </button>
+                <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--color-text-muted)">
+                    Hai già un account? <a href="#" onclick="toggleForm()" style="color:var(--color-primary);font-weight:600">Accedi</a>
+                </p>
+            </div>
+
+            <div id="login-error" style="display:none;margin-top:12px" class="alert alert-danger">
+                <i class="fa-solid fa-circle-exclamation"></i> <span id="login-error-msg">Credenziali non valide</span>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script>
+    // If already logged in, go to dashboard
+    if (sessionStorage.getItem('gest_user')) window.location.href = 'index.html';
+
+    // Load doctor name on brand panel
+    try {
+        const m = JSON.parse(localStorage.getItem('gest_generico') || '{}');
+        const nome = (m.titolo || 'Prof.') + ' ' + (m.nome || '') + ' ' + (m.cognome || '');
+        if (nome.trim() !== 'Prof.') {
+            document.getElementById('login-brand-subtitle').innerHTML =
+                `Gestionale Profilo per<br><strong>${nome.trim()}</strong>`;
+        }
+    } catch(e) {}
+
+    function toggleForm() {
+        const fl = document.getElementById('form-login');
+        const fr = document.getElementById('form-register');
+        fl.style.display = fl.style.display === 'none' ? '' : 'none';
+        fr.style.display = fr.style.display === 'none' ? '' : 'none';
+        document.getElementById('login-error').style.display = 'none';
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('login-error');
+        document.getElementById('login-error-msg').textContent = msg;
+        el.style.display = 'flex';
+    }
+
+    function doLogin() {
+        const user = document.getElementById('login-user').value.trim();
+        const pass = document.getElementById('login-pass').value;
+        if (!user || !pass) { showError('Inserisci nome utente e password'); return; }
+
+        // Check against saved credentials (or accept any for demo)
+        const saved = JSON.parse(localStorage.getItem('gest_credentials') || '[]');
+        const found = saved.find(c => c.user === user && c.pass === pass);
+
+        if (found || saved.length === 0) {
+            // Accept any login if no accounts registered yet (demo mode)
+            Auth.login(found ? found.nome : 'Giovanni', found ? found.cognome : 'Esposito');
+            window.location.href = 'index.html';
+        } else {
+            showError('Nome utente o password non corretti');
+        }
+    }
+
+    function doRegister() {
+        const nome    = document.getElementById('reg-nome').value.trim();
+        const cognome = document.getElementById('reg-cognome').value.trim();
+        const user    = document.getElementById('reg-user').value.trim();
+        const pass    = document.getElementById('reg-pass').value;
+        if (!nome || !cognome || !user || !pass) { showError('Compila tutti i campi'); return; }
+
+        const saved = JSON.parse(localStorage.getItem('gest_credentials') || '[]');
+        if (saved.find(c => c.user === user)) { showError('Nome utente già esistente'); return; }
+        saved.push({ nome, cognome, user, pass });
+        localStorage.setItem('gest_credentials', JSON.stringify(saved));
+        Auth.login(nome, cognome);
+        window.location.href = 'index.html';
+    }
+
+    // Allow Enter key on login
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

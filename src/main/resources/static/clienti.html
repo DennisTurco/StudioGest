@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudioGest — Clienti</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-logo"><div class="logo-icon"><i class="fa-solid fa-briefcase"></i></div>StudioGest</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Gestionale</div>
+            <div class="nav-item" data-page="dashboard"><span class="nav-icon"><i class="fa-solid fa-house"></i></span> Dashboard</div>
+            <div class="nav-item" data-page="clienti"><span class="nav-icon"><i class="fa-solid fa-user-group"></i></span> Clienti</div>
+            <div class="nav-item" data-page="sessioni"><span class="nav-icon"><i class="fa-solid fa-calendar-plus"></i></span> Sessioni</div>
+            <div class="nav-item" data-page="risorse"><span class="nav-icon"><i class="fa-solid fa-boxes-stacked"></i></span> Risorse</div>
+            <div class="nav-item" data-page="richiesta-documenti"><span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span> Documenti</div>
+            <div class="sidebar-section-label">Sistema</div>
+            <div class="nav-item" data-page="impostazioni"><span class="nav-icon"><i class="fa-solid fa-gear"></i></span> Impostazioni</div>
+            <div class="nav-item" data-page="logout"><span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span> Esci</div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="sidebar-user-avatar">LB</div>
+                <div><div class="font-medium" style="color:#E2E8F0;font-size:13px" id="sidebar-user-name">—</div><div style="font-size:11px" id="sidebar-user-role">—</div></div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="topbar">
+            <div class="topbar-title"><i class="fa-solid fa-user-group" style="color:var(--color-primary);margin-right:8px"></i><span data-vocab="clienti">Clienti</span></div>
+            <div class="topbar-actions">
+                <span class="text-muted text-sm" id="count-label"></span>
+                <button class="btn btn-ghost btn-sm" onclick="exportClientiCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+                <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Stampa</button>
+                <button class="btn btn-primary btn-sm" onclick="openModalNuovo()"><i class="fa-solid fa-user-plus"></i> <span data-vocab="nuovoCliente">Nuovo Cliente</span></button>
+            </div>
+        </header>
+
+        <main class="page-body">
+            <div class="card">
+                <div class="toolbar">
+                    <div class="search-bar" style="width:280px">
+                        <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" class="form-control" id="search-input" placeholder="Cerca per nome, cognome, CF…">
+                    </div>
+                </div>
+                <div class="table-wrapper" style="border:none;border-radius:0">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nome</th>
+                                <th>Cognome</th>
+                                <th>Codice Fiscale</th>
+                                <th>Data Nascita</th>
+                                <th>Comune Nascita</th>
+                                <th>Telefono</th>
+                                <th>Residenza</th>
+                                <th style="width:130px">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clienti-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal Cliente -->
+<div class="modal-overlay" id="modal-cliente">
+    <div class="modal" style="width:min(680px,95vw)">
+        <div class="modal-header">
+            <span id="modal-cliente-title"><i class="fa-solid fa-user-plus"></i> Nuovo Cliente</span>
+            <button class="btn-close" data-modal-close="modal-cliente">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="p-id">
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Nome *</label><input type="text" id="p-nome" class="form-control" placeholder="Mario"></div>
+                <div class="form-group"><label class="form-label">Cognome *</label><input type="text" id="p-cognome" class="form-control" placeholder="Rossi"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Codice Fiscale</label><input type="text" id="p-cf" class="form-control" placeholder="RSSMRA80A01H501X" style="text-transform:uppercase"></div>
+                <div class="form-group"><label class="form-label">Data di Nascita</label><input type="date" id="p-dob" class="form-control"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Comune di Nascita</label><input type="text" id="p-comune" class="form-control" placeholder="Roma"></div>
+                <div class="form-group"><label class="form-label">Telefono</label><input type="text" id="p-telefono" class="form-control" placeholder="333 1234567"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Residenza</label><input type="text" id="p-residenza" class="form-control" placeholder="Via Roma 1, 00100 Roma"></div>
+            <div class="form-group"><label class="form-label">Note</label><textarea id="p-note" class="form-control" rows="2" placeholder="Note aggiuntive…"></textarea></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-modal-close="modal-cliente">Annulla</button>
+            <button class="btn btn-primary" onclick="saveCliente()"><i class="fa-solid fa-floppy-disk"></i> Salva</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Conferma Elimina -->
+<div class="modal-overlay" id="modal-elimina">
+    <div class="modal" style="width:min(420px,95vw)">
+        <div class="modal-header"><i class="fa-solid fa-triangle-exclamation" style="color:var(--color-danger)"></i> Conferma eliminazione<button class="btn-close" data-modal-close="modal-elimina">✕</button></div>
+        <div class="modal-body"><p>Sei sicuro/a di voler eliminare questo elemento? Tutti i dati correlati saranno eliminati definitivamente.</p></div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-modal-close="modal-elimina">Annulla</button>
+            <button class="btn btn-danger" onclick="confirmDelete()"><i class="fa-solid fa-trash"></i> Elimina</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container"></div>
+
+<!-- Print-only table -->
+<div id="print-clienti" class="print-only" style="padding:20px">
+    <h2 style="color:#0F766E;margin-bottom:16px"><i class="fa-solid fa-user-group"></i> Lista <span data-vocab="clienti">Clienti</span></h2>
+    <p style="font-size:12px;margin-bottom:12px">Stampato il: <span id="print-date"></span></p>
+    <div id="print-table-container"></div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+let allClienti = [];
+let deleteId = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderClienti();
+    document.getElementById('search-input').addEventListener('input', e => {
+        renderClienti(e.target.value);
+    });
+    document.getElementById('print-date').textContent = new Date().toLocaleDateString('it-IT');
+});
+
+function renderClienti(query = '') {
+    allClienti = DB.getAll('clienti');
+    const filtered = filterItems(allClienti, query, ['nome','cognome','cf','telefono','residenza']);
+    document.getElementById('count-label').textContent = `${filtered.length} ${Vocab.get()[filtered.length !== 1 ? 'clienti' : 'cliente']}`;
+    const tbody = document.getElementById('clienti-tbody');
+
+    if (!filtered.length) {
+        setHTML(tbody, `<tr><td colspan="9" class="text-center text-muted" style="padding:40px">
+            ${!allClienti.length ? `<div class="empty-state" style="padding:0"><div class="empty-icon">👤</div><h3>Nessun ${Vocab.get().cliente.toLowerCase()}</h3><p>Aggiungi il primo ${Vocab.get().cliente.toLowerCase()}.</p><button class="btn btn-primary btn-sm" onclick="openModalNuovo()">+ ${Vocab.get().nuovoCliente}</button></div>`
+            : 'Nessun risultato per la ricerca'}
+        </td></tr>`);
+        return;
+    }
+
+    setHTML(tbody, filtered.map((c, i) => `
+        <tr>
+            <td class="text-muted">${i + 1}</td>
+            <td class="font-semibold">${c.nome}</td>
+            <td>${c.cognome}</td>
+            <td><code style="font-size:12px;background:#F1F5F9;padding:2px 6px;border-radius:4px">${c.cf || '—'}</code></td>
+            <td>${c.dataNascita ? new Date(c.dataNascita+'T00:00:00').toLocaleDateString('it-IT') : '—'}</td>
+            <td>${c.comuneNascita || '—'}</td>
+            <td>${c.telefono || '—'}</td>
+            <td class="text-muted" style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.residenza || '—'}</td>
+            <td>
+                <div style="display:flex;gap:4px">
+                    <button class="btn btn-primary btn-sm" onclick="apertiScheda('${c.id}')" title="Apri Scheda"><i class="fa-solid fa-folder-open"></i></button>
+                    <button class="btn btn-ghost btn-sm" onclick="openModalModifica('${c.id}')" title="Modifica"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--color-danger)" onclick="askDelete('${c.id}')" title="Elimina"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>`).join(''));
+
+    // Update print table
+    setHTML(document.getElementById('print-table-container'), `
+        <table style="width:100%;border-collapse:collapse;font-size:11pt">
+            <thead><tr style="background:#F1F5F9">${['Nome','Cognome','CF','Nascita','Comune','Telefono','Residenza'].map(h=>`<th style="border:1px solid #ccc;padding:6px 8px;text-align:left">${h}</th>`).join('')}</tr></thead>
+            <tbody>${filtered.map(p=>`<tr>${[c.nome,c.cognome,c.cf||'—',c.dataNascita?new Date(c.dataNascita+'T00:00:00').toLocaleDateString('it-IT'):'—',c.comuneNascita||'—',c.telefono||'—',c.residenza||'—'].map(v=>`<td style="border:1px solid #ccc;padding:5px 8px">${v}</td>`).join('')}</tr>`).join('')}
+            </tbody>
+        </table>`);
+}
+
+function apertiScheda(id) { window.location.href = `scheda-cliente.html?id=${id}`; }
+
+function openModalNuovo() {
+    document.getElementById('modal-cliente-title').innerHTML = `<i class="fa-solid fa-user-plus"></i> ${Vocab.get().nuovoCliente}`;
+    ['p-id','p-nome','p-cognome','p-cf','p-dob','p-comune','p-telefono','p-residenza','p-note'].forEach(id => document.getElementById(id).value = '');
+    openModal('modal-cliente');
+}
+
+function openModalModifica(id) {
+    const c = DB.getById('clienti', id);
+    if (!c) return;
+    document.getElementById('modal-cliente-title').innerHTML = `<i class="fa-solid fa-pen"></i> Modifica ${Vocab.get().cliente}`;
+    document.getElementById('p-id').value = c.id;
+    document.getElementById('p-nome').value = c.nome || '';
+    document.getElementById('p-cognome').value = c.cognome || '';
+    document.getElementById('p-cf').value = c.cf || '';
+    document.getElementById('p-dob').value = c.dataNascita || '';
+    document.getElementById('p-comune').value = c.comuneNascita || '';
+    document.getElementById('p-telefono').value = c.telefono || '';
+    document.getElementById('p-residenza').value = c.residenza || '';
+    document.getElementById('p-note').value = c.note || '';
+    openModal('modal-cliente');
+}
+
+function saveCliente() {
+    const nome = document.getElementById('p-nome').value.trim();
+    const cognome = document.getElementById('p-cognome').value.trim();
+    if (!nome || !cognome) { showToast('Nome e Cognome sono obbligatori', 'warning'); return; }
+    const data = {
+        nome, cognome,
+        cf: document.getElementById('p-cf').value.trim().toUpperCase(),
+        dataNascita: document.getElementById('p-dob').value,
+        comuneNascita: document.getElementById('p-comune').value.trim(),
+        telefono: document.getElementById('p-telefono').value.trim(),
+        residenza: document.getElementById('p-residenza').value.trim(),
+        note: document.getElementById('p-note').value.trim()
+    };
+    const id = document.getElementById('p-id').value;
+    if (id) {
+        DB.update('clienti', id, data);
+        showToast(`${Vocab.get().cliente} aggiornato`, 'success');
+    } else {
+        DB.create('clienti', data);
+        showToast(`${Vocab.get().cliente} aggiunto`, 'success');
+    }
+    closeModal('modal-cliente');
+    renderClienti();
+}
+
+function askDelete(id) { deleteId = id; openModal('modal-elimina'); }
+
+// TODO: change it
+function confirmDelete() {
+    if (!deleteId) return;
+    ['sessioni','servizi','analisi','richieste','note','doc_tecnici','accordi'].forEach(e => {
+        DB.save({ ...DB.load(), [e]: DB.getAll(e).filter(x => x.clienteId !== deleteId) });
+    });
+    DB.delete('clienti', deleteId);
+    deleteId = null;
+    closeModal('modal-elimina');
+    showToast(`${Vocab.get().cliente} eliminato`, 'success');
+    renderClienti();
+}
+
+function exportClientiCSV() {
+    const v = Vocab.get();
+    const data = DB.getAll('clienti').map(c => ({
+        Nome: c.nome, Cognome: c.cognome, CF: c.cf, 'Data Nascita': c.dataNascita,
+        'Comune Nascita': c.comuneNascita, Telefono: c.telefono, Residenza: c.residenza
+    }));
+    exportToCSV(data, `${v.clienti.toLowerCase()}.csv`);
+}
+</script>
+</body>
+</html>

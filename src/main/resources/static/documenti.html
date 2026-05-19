@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudioGest — Documenti</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .sheet-a4 { background: #fff; width: min(794px, 100%); min-height: 600px; margin: 0 auto; padding: 48px; box-shadow: 0 4px 24px rgba(0,0,0,0.12); border-radius: 10px; }
+        .print-actions { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 16px; }
+        @media print {
+            .sidebar, .topbar, .print-actions, .toolbar, .no-print { display: none !important; }
+            .page-body { padding: 0 !important; overflow: visible !important; }
+            .sheet-a4 { box-shadow: none !important; padding: 20mm !important; width: 100% !important; min-height: 0 !important; }
+            body, html { overflow: visible !important; height: auto !important; background: #fff !important; }
+            .app-shell, .main-content { display: block !important; height: auto !important; overflow: visible !important; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-logo"><div class="logo-icon"><i class="fa-solid fa-briefcase"></i></div>StudioGest</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Gestionale</div>
+            <div class="nav-item" data-page="dashboard"><span class="nav-icon"><i class="fa-solid fa-house"></i></span> Dashboard</div>
+            <div class="nav-item" data-page="clienti"><span class="nav-icon"><i class="fa-solid fa-user-group"></i></span> Clienti</div>
+            <div class="nav-item" data-page="sessioni"><span class="nav-icon"><i class="fa-solid fa-calendar-plus"></i></span> Sessioni</div>
+            <div class="nav-item" data-page="risorse"><span class="nav-icon"><i class="fa-solid fa-boxes-stacked"></i></span> Risorse</div>
+            <div class="nav-item" data-page="richiesta-documenti"><span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span> Documenti</div>
+            <div class="sidebar-section-label">Sistema</div>
+            <div class="nav-item" data-page="impostazioni"><span class="nav-icon"><i class="fa-solid fa-gear"></i></span> Impostazioni</div>
+            <div class="nav-item" data-page="logout"><span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span> Esci</div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="sidebar-user-avatar">LB</div>
+                <div><div class="font-medium" style="color:#E2E8F0;font-size:13px" id="sidebar-user-name">—</div><div style="font-size:11px" id="sidebar-user-role">—</div></div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="topbar">
+            <div class="topbar-title"><i class="fa-solid fa-file-lines" style="color:var(--color-primary);margin-right:8px"></i><span data-vocab="richiestaDocumenti">Richiesta Documenti</span></div>
+            <div class="topbar-actions no-print">
+                <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Stampa</button>
+            </div>
+        </header>
+
+        <main class="page-body">
+
+            <!-- Controlli no-print -->
+            <div class="no-print" style="display:flex;gap:12px;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap">
+                <div class="form-group" style="margin-bottom:0;min-width:220px">
+                    <label class="form-label">Seleziona Cliente</label>
+                    <select id="sel-cliente" class="form-control" onchange="onClienteChange()">
+                        <option value="">— Nessun cliente —</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Data Richiesta</label>
+                    <input type="date" id="req-data" class="form-control" style="width:160px">
+                </div>
+                <button class="btn btn-primary" onclick="saveRichiesta()"><i class="fa-solid fa-floppy-disk"></i> Salva Richiesta</button>
+                <button class="btn btn-ghost" onclick="nuovaRichiesta()"><i class="fa-solid fa-file-circle-plus"></i> Nuova</button>
+            </div>
+
+            <!-- Foglio A4 -->
+            <div class="sheet-a4" id="sheet">
+
+                <!-- Intestazione -->
+                <div class="letterhead" style="display:flex;justify-content:space-between;align-items:flex-start">
+                    <div id="letterhead-content">
+                        <!-- Populated dynamically from settings -->
+                    </div>
+                    <div style="text-align:right;font-size:12px;color:#64748B">
+                        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Documento di base</div>
+                        <div id="sheet-data-header" style="font-size:13px;color:#1E293B"></div>
+                    </div>
+                </div>
+
+                <!-- Titolo -->
+                <h1 style="font-size:18px;font-weight:700;color:#0F766E;margin-bottom:20px;text-align:center;text-transform:uppercase;letter-spacing:0.08em">
+                    <i class="fa-solid fa-file-lines no-print"></i> Richiesta Documenti
+                </h1>
+
+                <!-- Info cliente -->
+                <div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:16px;margin-bottom:24px">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;font-size:13px">
+                        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#64748B;font-weight:600">Cliente</div>
+                             <div id="sheet-cli-nome" style="font-weight:600;margin-top:2px">—</div></div>
+                        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#64748B;font-weight:600">Codice Fiscale</div>
+                             <div id="sheet-cli-cf" style="font-weight:600;margin-top:2px;font-family:monospace">—</div></div>
+                        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#64748B;font-weight:600">Data di Nascita</div>
+                             <div id="sheet-cli-dob" style="font-weight:600;margin-top:2px">—</div></div>
+                    </div>
+                </div>
+
+                <!-- Contenuto -->
+                <div style="margin-bottom:24px">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:#64748B;font-weight:600;margin-bottom:8px">Contenuto</div>
+                    <textarea id="sheet-contenuto" class="form-control no-print" rows="8"
+                        placeholder="Inserire il contenuto richiesto, uno per riga…"
+                        style="font-size:14px;line-height:1.7"></textarea>
+                    <div id="sheet-contenuto-print" class="print-only" style="border:1px solid #CBD5E1;padding:16px;min-height:120px;white-space:pre-line;font-size:12pt;line-height:1.8"></div>
+                </div>
+
+                <!-- Note -->
+                <div style="margin-bottom:36px">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:#64748B;font-weight:600;margin-bottom:8px">Note</div>
+                    <textarea id="sheet-note" class="form-control no-print" rows="3" placeholder="Note o indicazioni aggiuntive…"></textarea>
+                    <div id="sheet-note-print" class="print-only" style="border-top:1px solid #E2E8F0;padding-top:8px;min-height:40px;white-space:pre-line;font-size:11pt;color:#64748B"></div>
+                </div>
+
+                <!-- Firma -->
+                <div style="display:flex;justify-content:flex-end;margin-top:48px">
+                    <div style="text-align:center">
+                        <div style="border-top:1px solid #000;width:240px;margin:0 auto;padding-top:6px;font-size:12px;color:#64748B">Firma del Profilo</div>
+                        <div id="sheet-firma-nome" style="font-size:12px;font-weight:600;margin-top:4px"></div>
+                        <div id="sheet-data-firma" style="font-size:11px;color:#64748B"></div>
+                    </div>
+                </div>
+
+            </div><!-- /sheet -->
+
+            <!-- Storico richieste -->
+            <div class="no-print" style="margin-top:28px">
+                <div class="card">
+                    <div class="card-header">
+                        <span><i class="fa-solid fa-history"></i> Richieste Salvate</span>
+                    </div>
+                    <div id="storico-richieste" style="max-height:320px;overflow-y:auto"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+let allClienti = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    allClienti = DB.getAll('clienti');
+    renderLetterhead();
+    const sel = document.getElementById('sel-cliente');
+    allClienti.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.nome} ${c.cognome}`;
+        sel.appendChild(opt);
+    });
+
+    // Check ?cliente= param
+    const params = new URLSearchParams(window.location.search);
+    const pazId = params.get('cliente');
+    if (pazId) { sel.value = pazId; onClienteChange(); }
+
+    const today = new Date().toISOString().slice(0,10);
+    document.getElementById('req-data').value = today;
+    updateDateDisplay(today);
+    document.getElementById('req-data').addEventListener('change', e => updateDateDisplay(e.target.value));
+    document.getElementById('sheet-contenuto').addEventListener('input', syncPrintVersion);
+    document.getElementById('sheet-note').addEventListener('input', syncPrintVersion);
+
+    renderStorico();
+});
+
+function renderLetterhead() {
+    const m = Profilo.get();
+    const fullName = `${m.titolo} ${m.nome} ${m.cognome}`.trim();
+    const lh = document.getElementById('letterhead-content');
+    if (!lh) return;
+    lh.innerHTML = `
+        <div style="font-size:22px;font-weight:700;color:#0F766E;line-height:1.2">${m.titolo}<br>${m.nome} ${m.cognome}</div>
+        <div style="font-size:14px;font-weight:600;color:#1E293B;margin-top:4px">${m.qualifica}</div>
+        ${m.specializzazione ? `<div style="font-size:12px;color:#64748B;margin-top:6px">Specialista in: ${m.specializzazione}</div>` : ''}
+        ${m.competenze ? `<div style="font-size:12px;color:#64748B;margin-top:4px;line-height:1.7">Esperto/a in: ${m.competenze}</div>` : ''}
+        ${m.telefono ? `<div style="font-size:12px;margin-top:10px;color:#1E293B"><strong>Riceve su appuntamento:</strong> ${m.telefono}</div>` : ''}
+        ${m.indirizzo ? `<div style="font-size:12px;color:#64748B">${m.indirizzo}</div>` : ''}`;
+    const firmaEl = document.getElementById('sheet-firma-nome');
+    if (firmaEl) firmaEl.textContent = fullName;
+}
+
+function updateDateDisplay(dateStr) {
+    const d = dateStr ? new Date(dateStr+'T00:00:00').toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' }) : '';
+    document.getElementById('sheet-data-header').textContent = d ? `Data: ${d}` : '';
+    document.getElementById('sheet-data-firma').textContent = d ? `Data: ${d}` : '';
+}
+
+function onClienteChange() {
+    const id = document.getElementById('sel-cliente').value;
+    if (!id) {
+        document.getElementById('sheet-cli-nome').textContent = '—';
+        document.getElementById('sheet-cli-cf').textContent = '—';
+        document.getElementById('sheet-cli-dob').textContent = '—';
+        return;
+    }
+    const c = DB.getById('clienti', id);
+    if (!c) return;
+    document.getElementById('sheet-cli-nome').textContent = `${c.nome} ${c.cognome}`;
+    document.getElementById('sheet-cli-cf').textContent = c.cf || '—';
+    document.getElementById('sheet-cli-dob').textContent = c.dataNascita ? new Date(c.dataNascita+'T00:00:00').toLocaleDateString('it-IT') : '—';
+}
+
+function syncPrintVersion() {
+    document.getElementById('sheet-contenuto-print').textContent = document.getElementById('sheet-contenuto').value;
+    document.getElementById('sheet-note-print').textContent = document.getElementById('sheet-note').value;
+}
+
+function nuovaRichiesta() {
+    document.getElementById('sel-cliente').value = '';
+    document.getElementById('req-data').value = new Date().toISOString().slice(0,10);
+    document.getElementById('sheet-contenuto').value = '';
+    document.getElementById('sheet-note').value = '';
+    onClienteChange();
+    syncPrintVersion();
+    updateDateDisplay(new Date().toISOString().slice(0,10));
+}
+
+function saveRichiesta() {
+    const clienteId = document.getElementById('sel-cliente').value;
+    const contenuto = document.getElementById('sheet-contenuto').value.trim();
+    if (!clienteId) { showToast('Seleziona un cliente', 'warning'); return; }
+    if (!contenuto) { showToast('Inserisci gli Contenuto', 'warning'); return; }
+    DB.create('richieste', {
+        clienteId,
+        data: document.getElementById('req-data').value,
+        contenuto,
+        note: document.getElementById('sheet-note').value.trim()
+    });
+    showToast('Richiesta salvata', 'success');
+    renderStorico();
+}
+
+function renderStorico() {
+    const el = document.getElementById('storico-richieste');
+    const richieste = DB.getAll('richieste').sort((a,b) => (b.data||'').localeCompare(a.data||''));
+    if (!richieste.length) {
+        setHTML(el, `<div class="empty-state" style="padding:24px"><p class="text-muted">Nessuna richiesta salvata.</p></div>`);
+        return;
+    }
+    setHTML(el, `<table class="data-table">
+        <thead><tr><th>Data</th><th>Cliente</th><th>Contenuto</th><th>Azioni</th></tr></thead>
+        <tbody>${richieste.map(r => {
+            const c = DB.getById('clienti', r.clienteId);
+            return `<tr>
+                <td>${r.data ? new Date(r.data+'T00:00:00').toLocaleDateString('it-IT') : '—'}</td>
+                <td>${c ? `${c.nome} ${c.cognome}` : '—'}</td>
+                <td style="max-width:300px;white-space:pre-line;font-size:12px">${r.contenuto?.substring(0,120) || '—'}${r.contenuto?.length > 120 ? '…' : ''}</td>
+                <td>
+                    <div style="display:flex;gap:4px">
+                        <button class="btn btn-ghost btn-sm" onclick="loadRichiesta('${r.id}')" title="Carica"><i class="fa-solid fa-eye"></i></button>
+                        <button class="btn btn-ghost btn-sm" onclick="printRichiestaById('${r.id}')" title="Stampa"><i class="fa-solid fa-print"></i></button>
+                        <button class="btn btn-ghost btn-sm" style="color:var(--color-danger)" onclick="deleteRichiesta('${r.id}')" title="Elimina"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('')}</tbody>
+    </table>`);
+}
+
+function loadRichiesta(id) {
+    const r = DB.getById('richieste', id);
+    if (!r) return;
+    document.getElementById('sel-cliente').value = r.clienteId || '';
+    document.getElementById('req-data').value = r.data || '';
+    document.getElementById('sheet-contenuto').value = r.contenuto || '';
+    document.getElementById('sheet-note').value = r.note || '';
+    onClienteChange();
+    syncPrintVersion();
+    updateDateDisplay(r.data || '');
+}
+
+function deleteRichiesta(id) {
+    if (!confirm('Eliminare questa richiesta?')) return;
+    DB.delete('richieste', id);
+    renderStorico();
+    showToast('Eliminata', 'success');
+}
+
+function printRichiestaById(id) {
+    loadRichiesta(id);
+    setTimeout(() => window.print(), 300);
+}
+</script>
+</body>
+</html>

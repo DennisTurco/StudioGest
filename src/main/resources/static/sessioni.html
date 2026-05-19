@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudioGest — Sessioni</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-logo"><div class="logo-icon"><i class="fa-solid fa-briefcase"></i></div>StudioGest</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Gestionale</div>
+            <div class="nav-item" data-page="dashboard"><span class="nav-icon"><i class="fa-solid fa-house"></i></span> Dashboard</div>
+            <div class="nav-item" data-page="clienti"><span class="nav-icon"><i class="fa-solid fa-user-group"></i></span> Clienti</div>
+            <div class="nav-item" data-page="sessioni"><span class="nav-icon"><i class="fa-solid fa-calendar-plus"></i></span> Sessioni</div>
+            <div class="nav-item" data-page="risorse"><span class="nav-icon"><i class="fa-solid fa-boxes-stacked"></i></span> Risorse</div>
+            <div class="nav-item" data-page="richiesta-documenti"><span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span> Documenti</div>
+            <div class="sidebar-section-label">Sistema</div>
+            <div class="nav-item" data-page="impostazioni"><span class="nav-icon"><i class="fa-solid fa-gear"></i></span> Impostazioni</div>
+            <div class="nav-item" data-page="logout"><span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span> Esci</div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="sidebar-user-avatar">LB</div>
+                <div><div class="font-medium" style="color:#E2E8F0;font-size:13px" id="sidebar-user-name">—</div><div style="font-size:11px" id="sidebar-user-role">—</div></div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="topbar">
+            <div class="topbar-title"><i class="fa-solid fa-calendar-plus" style="color:var(--color-primary);margin-right:8px"></i><span data-vocab="sessioni">Sedute</span></div>
+            <div class="topbar-actions">
+                <button class="btn btn-ghost btn-sm" onclick="exportSessioniCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+                <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Stampa</button>
+                <button class="btn btn-primary btn-sm" onclick="openModalNuova()"><i class="fa-solid fa-plus"></i> <span data-vocab="nuovaSessione">Nuova Sessione</span></button>
+            </div>
+        </header>
+
+        <main class="page-body">
+
+            <!-- Stats per tipo -->
+            <div id="stats-tipi" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px"></div>
+
+            <div class="card">
+                <div class="toolbar">
+                    <div class="search-bar" style="width:240px">
+                        <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" class="form-control" id="search-input" placeholder="Cerca…">
+                    </div>
+                    <select id="filter-tipo" class="form-control" style="width:200px">
+                        <option value="">Tutti i tipi</option>
+                        <option value="t1" data-tipo="t1">Tipo A</option>
+                        <option value="t2" data-tipo="t2">Tipo B</option>
+                        <option value="t3" data-tipo="t3">Tipo C</option>
+                        <option value="t4" data-tipo="t4">Tipo D</option>
+                        <option value="t5" data-tipo="t5">Tipo E</option>
+                    </select>
+                    <select id="filter-cliente" class="form-control" style="width:200px">
+                        <option value="" id="filter-cliente-all">Tutti</option>
+                    </select>
+                </div>
+
+                <div class="table-wrapper" style="border:none;border-radius:0">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th id="col-cliente">Cliente</th>
+                                <th>Tipo</th>
+                                <th>Data</th>
+                                <th id="col-risorse">Risorse</th>
+                                <th>Descrizione</th>
+                                <th>Note</th>
+                                <th style="width:100px">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessioni-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal Sessione -->
+<div class="modal-overlay" id="modal-sessione">
+    <div class="modal">
+        <div class="modal-header">
+            <span id="modal-sessione-title"><i class="fa-solid fa-calendar-plus"></i> Nuova Sessione</span>
+            <button class="btn-close" data-modal-close="modal-sessione">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="sed-id">
+            <div class="form-group">
+                <label class="form-label" id="modal-sed-label-cliente">Cliente *</label>
+                <select id="sed-cliente" class="form-control"></select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" id="modal-sed-label-tipo">Tipo *</label>
+                    <select id="sed-tipo" class="form-control">
+                        <option value="">Seleziona…</option>
+                        <option value="t1" data-tipo="t1">Tipo A</option>
+                        <option value="t2" data-tipo="t2">Tipo B</option>
+                        <option value="t3" data-tipo="t3">Tipo C</option>
+                        <option value="t4" data-tipo="t4">Tipo D</option>
+                        <option value="t5" data-tipo="t5">Tipo E</option>
+                    </select>
+                </div>
+                <div class="form-group"><label class="form-label">Data *</label><input type="date" id="sed-data" class="form-control"></div>
+            </div>
+            <div class="form-group"><label class="form-label" id="modal-sed-label-risorse">Risorse utilizzate</label><input type="text" id="sed-risorse" class="form-control" placeholder="es. note risorse…"></div>
+            <div class="form-group"><label class="form-label">Descrizione</label><textarea id="sed-descrizione" class="form-control" rows="3"></textarea></div>
+            <div class="form-group"><label class="form-label">Note</label><input type="text" id="sed-nota" class="form-control"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" data-modal-close="modal-sessione">Annulla</button>
+            <button class="btn btn-primary" onclick="saveSessione()"><i class="fa-solid fa-floppy-disk"></i> Salva</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+let allSessioni = [];
+let allClienti = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    const v = Vocab.get();
+    allClienti = DB.getAll('clienti');
+
+    // Dynamic column headers and labels
+    const colP = document.getElementById('col-cliente');
+    const colF = document.getElementById('col-risorse');
+    if (colP) colP.textContent = v.cliente;
+    if (colF) colF.textContent = v.risorse;
+    const fpAll = document.getElementById('filter-cliente-all');
+    if (fpAll) fpAll.textContent = `Tutti i ${v.clienti.toLowerCase()}`;
+    const lP = document.getElementById('modal-sed-label-cliente');
+    const lT = document.getElementById('modal-sed-label-tipo');
+    const lF = document.getElementById('modal-sed-label-risorse');
+    if (lP) lP.textContent = v.cliente + ' *';
+    if (lT) lT.textContent = `Tipo ${v.sessione} *`;
+    if (lF) lF.textContent = `${v.risorse} somministrati`;
+
+    populateClienteFilter();
+    renderSessioni();
+    renderStats();
+    ['search-input','filter-tipo','filter-cliente'].forEach(id =>
+        document.getElementById(id).addEventListener('input', applyFilters));
+    document.getElementById('filter-cliente').addEventListener('change', applyFilters);
+    document.getElementById('filter-tipo').addEventListener('change', applyFilters);
+});
+
+function populateClienteFilter() {
+    const sel = document.getElementById('filter-cliente');
+    allClienti.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.nome} ${c.cognome}`;
+        sel.appendChild(opt);
+    });
+}
+
+function populateModalCliente(selectedId) {
+    const sel = document.getElementById('sed-cliente');
+    const v = Vocab.get();
+    setHTML(sel, `<option value="">Seleziona ${v.cliente.toLowerCase()}…</option>` +
+        allClienti.map(c => `<option value="${c.id}" ${c.id === selectedId ? 'selected' : ''}>${c.nome} ${c.cognome}</option>`).join(''));
+}
+
+function renderStats() {
+    const all = DB.getAll('sessioni');
+    const statsEl = document.getElementById('stats-tipi');
+    setHTML(statsEl, Object.entries(SESSION_TYPES).map(([key, val]) => {
+        const cnt = all.filter(s => s.tipo === key).length;
+        return `<span class="badge ${val.badge}" style="padding:6px 14px;font-size:13px">
+            ${getSessioneLabel(key)}: <strong>${cnt}</strong>
+        </span>`;
+    }).join('') + `<span class="badge badge-muted" style="padding:6px 14px;font-size:13px">Totale: <strong>${all.length}</strong></span>`);
+}
+
+function renderSessioni(items) {
+    allSessioni = DB.getAll('sessioni').sort((a,b) => (b.data||'').localeCompare(a.data||''));
+    const filtered = items !== undefined ? items : allSessioni;
+    const tbody = document.getElementById('sessioni-tbody');
+
+    if (!filtered.length) {
+        setHTML(tbody, `<tr><td colspan="8" class="text-center" style="padding:40px">
+            <div class="empty-state" style="padding:0">
+                <div class="empty-icon"><i class="fa-solid fa-calendar-plus" style="font-size:40px;color:var(--color-text-light)"></i></div>
+                <h3>Nessuna ${Vocab.get().sessione.toLowerCase()}</h3>
+                <p>Aggiungi la prima ${Vocab.get().sessione.toLowerCase()}.</p>
+                <button class="btn btn-primary btn-sm" onclick="openModalNuova()">+ ${Vocab.get().nuovaSessione}</button>
+            </div>
+        </td></tr>`);
+        return;
+    }
+
+    setHTML(tbody, filtered.map((s, i) => {
+        const cli = allClienti.find(c => c.id === s.clienteId);
+        const clienteNome = cli ? `${cli.nome} ${cli.cognome}` : '—';
+        const cssClass = SESSION_TYPES[s.tipo]?.cssClass || '';
+        return `
+        <tr class="${cssClass}">
+            <td class="text-muted">${i + 1}</td>
+            <td>
+                <a href="scheda-cliente.html?id=${s.clienteId}" style="color:var(--color-primary);font-weight:500">${clienteNome}</a>
+            </td>
+            <td>${sessionTypeBadge(s.tipo)}</td>
+            <td>${s.data ? new Date(s.data+'T00:00:00').toLocaleDateString('it-IT') : '—'}</td>
+            <td>${s.risorse || '—'}</td>
+            <td>${s.descrizione || '—'}</td>
+            <td class="text-muted">${s.nota || '—'}</td>
+            <td>
+                <div style="display:flex;gap:4px">
+                    <button class="btn btn-ghost btn-sm" onclick="openModalModifica('${s.id}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--color-danger)" onclick="deleteSessione('${s.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    }).join(''));
+}
+
+function applyFilters() {
+    const query = document.getElementById('search-input').value;
+    const tipo = document.getElementById('filter-tipo').value;
+    const pazId = document.getElementById('filter-cliente').value;
+
+    let items = allSessioni;
+    if (query) {
+        const q = query.toLowerCase();
+        items = items.filter(s => {
+            const cli = allClienti.find(c => c.id === s.clienteId);
+            return (cli && `${cli.nome} ${cli.cognome}`.toLowerCase().includes(q)) ||
+                   (s.risorse || '').toLowerCase().includes(q) ||
+                   (s.descrizione || '').toLowerCase().includes(q);
+        });
+    }
+    if (tipo) items = items.filter(s => s.tipo === tipo);
+    if (pazId) items = items.filter(s => s.clienteId === pazId);
+    renderSessioni(items);
+}
+
+function openModalNuova() {
+    const v = Vocab.get();
+    document.getElementById('modal-sessione-title').innerHTML = `<i class="fa-solid fa-calendar-plus"></i> ${v.nuovaSessione}`;
+    ['sed-id','sed-tipo','sed-risorse','sed-descrizione','sed-nota'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('sed-data').value = new Date().toISOString().slice(0,10);
+    populateModalCliente('');
+    openModal('modal-sessione');
+}
+
+function openModalModifica(id) {
+    const s = DB.getById('sessioni', id);
+    if (!s) return;
+    const v = Vocab.get();
+    document.getElementById('modal-sessione-title').innerHTML = `<i class="fa-solid fa-pen"></i> Modifica ${v.sessione}`;
+    document.getElementById('sed-id').value = s.id;
+    document.getElementById('sed-tipo').value = s.tipo || '';
+    document.getElementById('sed-data').value = s.data || '';
+    document.getElementById('sed-risorse').value = s.risorse || '';
+    document.getElementById('sed-descrizione').value = s.descrizione || '';
+    document.getElementById('sed-nota').value = s.nota || '';
+    populateModalCliente(s.clienteId);
+    openModal('modal-sessione');
+}
+
+function saveSessione() {
+    const clienteId = document.getElementById('sed-cliente').value;
+    const tipo = document.getElementById('sed-tipo').value;
+    const data = document.getElementById('sed-data').value;
+    const v = Vocab.get();
+    if (!clienteId || !tipo || !data) { showToast(`${v.cliente}, tipo e data sono obbligatori`, 'warning'); return; }
+    const obj = { clienteId, tipo, data,
+        risorse: document.getElementById('sed-risorse').value.trim(),
+        descrizione: document.getElementById('sed-descrizione').value.trim(),
+        nota: document.getElementById('sed-nota').value.trim() };
+    const id = document.getElementById('sed-id').value;
+    if (id) { DB.update('sessioni', id, obj); showToast(`${v.sessione} aggiornata`, 'success'); }
+    else { DB.create('sessioni', obj); showToast(`${v.sessione} aggiunta`, 'success'); }
+    closeModal('modal-sessione');
+    allSessioni = DB.getAll('sessioni').sort((a,b) => (b.data||'').localeCompare(a.data||''));
+    renderSessioni();
+    renderStats();
+}
+
+function deleteSessione(id) {
+    const v = Vocab.get();
+    if (!confirm(`Eliminare questa ${v.sessione.toLowerCase()}?`)) return;
+    DB.delete('sessioni', id);
+    allSessioni = DB.getAll('sessioni').sort((a,b) => (b.data||'').localeCompare(a.data||''));
+    renderSessioni();
+    renderStats();
+    showToast(`${v.sessione} eliminata`, 'success');
+}
+
+function exportSessioniCSV() {
+    const v = Vocab.get();
+    const data = DB.getAll('sessioni').map(s => {
+        const cli = allClienti.find(c => c.id === s.clienteId);
+        return {
+            [v.cliente]: cli ? `${cli.nome} ${cli.cognome}` : '—',
+            [`CF ${v.cliente}`]: cli?.cf || '—',
+            Tipo: getSessioneLabel(s.tipo),
+            Data: s.data || '',
+            [v.risorse]: s.risorse || '',
+            Descrizione: s.descrizione || '',
+            Note: s.nota || ''
+        };
+    });
+    exportToCSV(data, `${v.sessioni.toLowerCase()}.csv`);
+}
+</script>
+</body>
+</html>
